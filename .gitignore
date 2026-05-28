@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Capacitor / Android (build artifacts only — keep android/ source so the
+# Android Studio project itself is committed for reproducibility)
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/local.properties
+android/.cxx/
+android/captures/
+android/.idea/
+.apk-stash/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Tests / coverage
+coverage/
+
+# Local-only Claude config
+.claude/launch.json

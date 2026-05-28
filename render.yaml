@@ -1,0 +1,23 @@
+# Render Blueprint — Yomu Game Night
+# https://render.com/docs/blueprint-spec
+#
+# Push this file to your GitHub repo and on Render: "New +" → "Blueprint" →
+# select the repo. Render reads this file and provisions everything.
+
+services:
+  - type: web
+    name: yomu-game-night
+    runtime: node
+    plan: free                   # 750 free hrs/mo; sleeps after 15 min idle
+    region: frankfurt            # change to oregon / singapore / virginia if closer
+    branch: main
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injects PORT automatically — server.ts already reads process.env.PORT
+      - key: NODE_OPTIONS
+        value: --enable-source-maps

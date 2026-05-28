@@ -1,0 +1,46 @@
+{
+  "name": "yomu-game-night",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "build": "next build",
+    "start": "NODE_ENV=production tsx server.ts",
+    "lint": "next lint",
+    "apk:export": "node scripts/build-apk.mjs",
+    "apk:init": "npx cap add android",
+    "apk:sync": "npm run apk:export && npx cap sync android",
+    "apk:open": "npx cap open android",
+    "apk:build": "npm run apk:sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/haptics": "^6.0.2",
+    "@capacitor/status-bar": "^6.0.2",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "next": "^15.1.0",
+    "qrcode.react": "^4.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.0.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^9",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

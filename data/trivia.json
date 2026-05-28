@@ -1,0 +1,74 @@
+{
+  "categories": {
+    "General": [
+      { "q": "What is the capital of France?", "o": ["London", "Berlin", "Paris", "Madrid"], "a": 2 },
+      { "q": "How many sides does a hexagon have?", "o": ["5", "6", "7", "8"], "a": 1 },
+      { "q": "Which planet is closest to the Sun?", "o": ["Venus", "Earth", "Mars", "Mercury"], "a": 3 },
+      { "q": "What is the largest ocean on Earth?", "o": ["Atlantic", "Indian", "Arctic", "Pacific"], "a": 3 },
+      { "q": "How many bones are in the adult human body?", "o": ["196", "206", "216", "226"], "a": 1 },
+      { "q": "What is the chemical symbol for gold?", "o": ["Gd", "Go", "Au", "Ag"], "a": 2 },
+      { "q": "Which country has the most natural lakes?", "o": ["Russia", "USA", "Brazil", "Canada"], "a": 3 },
+      { "q": "What is the fastest land animal?", "o": ["Lion", "Cheetah", "Leopard", "Horse"], "a": 1 },
+      { "q": "In what year did World War II end?", "o": ["1943", "1944", "1945", "1946"], "a": 2 },
+      { "q": "How many strings does a standard guitar have?", "o": ["4", "5", "6", "7"], "a": 2 },
+      { "q": "What is the smallest country in the world?", "o": ["Monaco", "San Marino", "Vatican City", "Liechtenstein"], "a": 2 },
+      { "q": "Which element has the atomic number 1?", "o": ["Helium", "Hydrogen", "Lithium", "Carbon"], "a": 1 },
+      { "q": "What is the longest river in the world?", "o": ["Amazon", "Yangtze", "Mississippi", "Nile"], "a": 3 },
+      { "q": "How many players are on a basketball team on the court?", "o": ["4", "5", "6", "7"], "a": 1 },
+      { "q": "What language has the most native speakers?", "o": ["English", "Spanish", "Mandarin", "Hindi"], "a": 2 }
+    ],
+    "Pop Culture": [
+      { "q": "Which movie features the line 'I'll be back'?", "o": ["RoboCop", "Total Recall", "The Terminator", "Predator"], "a": 2 },
+      { "q": "What band was Freddie Mercury the lead singer of?", "o": ["Led Zeppelin", "Queen", "The Rolling Stones", "Aerosmith"], "a": 1 },
+      { "q": "In Friends, what is Joey's catchphrase?", "o": ["How you doin'?", "Could this BE any more...?", "We were on a break!", "Oh. My. God!"], "a": 0 },
+      { "q": "Which streaming service created 'Stranger Things'?", "o": ["HBO", "Disney+", "Netflix", "Amazon"], "a": 2 },
+      { "q": "What app is known for short videos and dances?", "o": ["Instagram", "Snapchat", "TikTok", "YouTube Shorts"], "a": 2 },
+      { "q": "Who played Iron Man in the Marvel films?", "o": ["Chris Evans", "Robert Downey Jr.", "Chris Pratt", "Mark Ruffalo"], "a": 1 },
+      { "q": "What year was the first iPhone released?", "o": ["2005", "2006", "2007", "2008"], "a": 2 },
+      { "q": "Which artist has the most Grammy Awards ever?", "o": ["Taylor Swift", "Jay-Z", "Beyoncé", "Georg Solti"], "a": 3 },
+      { "q": "What is the name of the coffee shop in Friends?", "o": ["Perk Up", "Central Perk", "The Grind", "Java Joe's"], "a": 1 },
+      { "q": "Which video game features a character named Master Chief?", "o": ["Call of Duty", "Destiny", "Halo", "Gears of War"], "a": 2 },
+      { "q": "What color is the Snapchat logo?", "o": ["Blue", "Red", "Green", "Yellow"], "a": 3 },
+      { "q": "Who sang 'Shape of You'?", "o": ["Justin Bieber", "Shawn Mendes", "Ed Sheeran", "Harry Styles"], "a": 2 },
+      { "q": "What movie features the song 'Let It Go'?", "o": ["Tangled", "Moana", "Frozen", "Encanto"], "a": 2 },
+      { "q": "In which city does the show 'Squid Game' take place?", "o": ["Tokyo", "Beijing", "Seoul", "Bangkok"], "a": 2 },
+      { "q": "What is the best-selling video game of all time?", "o": ["GTA V", "Tetris", "Minecraft", "Wii Sports"], "a": 2 }
+    ],
+    "Science": [
+      { "q": "What gas do plants absorb from the atmosphere?", "o": ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], "a": 2 },
+      { "q": "How many chromosomes does a human cell have?", "o": ["23", "44", "46", "48"], "a": 2 },
+      { "q": "What is the speed of light (approx)?", "o": ["100,000 km/s", "300,000 km/s", "500,000 km/s", "1,000,000 km/s"], "a": 1 },
+      { "q": "What is the powerhouse of the cell?", "o": ["Nucleus", "Ribosome", "Mitochondria", "Golgi Apparatus"], "a": 2 },
+      { "q": "Which planet has the most moons?", "o": ["Jupiter", "Saturn", "Uranus", "Neptune"], "a": 1 },
+      { "q": "What is the hardest natural substance on Earth?", "o": ["Titanium", "Quartz", "Diamond", "Corundum"], "a": 2 },
+      { "q": "What type of animal is a Komodo dragon?", "o": ["Snake", "Crocodile", "Lizard", "Salamander"], "a": 2 },
+      { "q": "What is H2O more commonly known as?", "o": ["Salt", "Water", "Hydrogen Peroxide", "Bleach"], "a": 1 },
+      { "q": "How long does light from the Sun take to reach Earth?", "o": ["8 seconds", "8 minutes", "8 hours", "8 days"], "a": 1 },
+      { "q": "What particle has a negative charge?", "o": ["Proton", "Neutron", "Electron", "Photon"], "a": 2 }
+    ],
+    "Sports": [
+      { "q": "How many players are on a soccer field per team?", "o": ["9", "10", "11", "12"], "a": 2 },
+      { "q": "Which country won the 2022 FIFA World Cup?", "o": ["Brazil", "France", "Argentina", "Croatia"], "a": 2 },
+      { "q": "How many rings are on the Olympic flag?", "o": ["4", "5", "6", "7"], "a": 1 },
+      { "q": "In tennis, what score comes after Deuce?", "o": ["Love", "Advantage", "Set", "Match"], "a": 1 },
+      { "q": "What sport is played at Wimbledon?", "o": ["Cricket", "Squash", "Badminton", "Tennis"], "a": 3 },
+      { "q": "How long is a standard marathon in kilometers?", "o": ["40km", "42.195km", "44km", "45km"], "a": 1 },
+      { "q": "Which NBA player is known as 'King James'?", "o": ["Kobe Bryant", "Michael Jordan", "LeBron James", "Shaquille O'Neal"], "a": 2 },
+      { "q": "In which sport would you perform a 'slam dunk'?", "o": ["Volleyball", "Basketball", "Handball", "Water Polo"], "a": 1 },
+      { "q": "What is the maximum score in 10-pin bowling?", "o": ["200", "270", "300", "330"], "a": 2 },
+      { "q": "Which country invented baseball?", "o": ["Canada", "Cuba", "USA", "Dominican Republic"], "a": 2 }
+    ],
+    "Food & Drink": [
+      { "q": "What is the main ingredient in guacamole?", "o": ["Tomato", "Lime", "Avocado", "Onion"], "a": 2 },
+      { "q": "Which country is sushi originally from?", "o": ["China", "Korea", "Thailand", "Japan"], "a": 3 },
+      { "q": "What is the most popular pizza topping in the US?", "o": ["Mushrooms", "Pepperoni", "Sausage", "Extra Cheese"], "a": 1 },
+      { "q": "What fruit is used to make wine?", "o": ["Apple", "Pear", "Grape", "Peach"], "a": 2 },
+      { "q": "How many calories in a Big Mac (approx)?", "o": ["350", "450", "550", "650"], "a": 2 },
+      { "q": "What nut is used to make Nutella?", "o": ["Almond", "Walnut", "Hazelnut", "Peanut"], "a": 2 },
+      { "q": "What is the world's hottest chili pepper?", "o": ["Habanero", "Carolina Reaper", "Ghost Pepper", "Scotch Bonnet"], "a": 1 },
+      { "q": "Which country drinks the most coffee per capita?", "o": ["Italy", "USA", "Brazil", "Finland"], "a": 3 },
+      { "q": "What is the national dish of Spain?", "o": ["Tapas", "Paella", "Gazpacho", "Tortilla"], "a": 1 },
+      { "q": "What gives red wine its red color?", "o": ["Tannins", "Yeast", "Grape Skin", "Sulfites"], "a": 2 }
+    ]
+  }
+}
