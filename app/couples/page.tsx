@@ -9,6 +9,15 @@ import {
 import { WYR_CARDS, RIDDLE_CARDS, SPIN_CONSEQUENCES } from '@/data/after-dark-extra'
 import { useSound } from '@/hooks/useSound'
 
+// Detect whether we're running inside the Capacitor APK (vs. plain web).
+// Used to hide the "← Back" link (which would send users to the broken
+// multiplayer landing) and to use native back-button / exit behaviour.
+function isNativeApp(): boolean {
+  if (typeof window === 'undefined') return false
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return !!(globalThis as any).Capacitor?.isNativePlatform?.()
+}
+
 // Sip milestones — celebrated when crossed (combined p1+p2 sips)
 const SIP_MILESTONES: { at: number; label: string; emoji: string }[] = [
   { at: 5,  label: 'Lightweight',     emoji: '🍷' },
@@ -59,12 +68,14 @@ function pickRandom<T>(pool: T[], played: Set<number>) {
 export default function CouplesPage() {
   const [ageConfirmed, setAgeConfirmed] = useState(() => {
     if (typeof window === 'undefined') return false
-    return sessionStorage.getItem('ad_age_ok') === '1'
+    // localStorage so APK users don't re-confirm on every launch;
+    // sessionStorage was tab-only, lost when phone backgrounded the app.
+    return localStorage.getItem('ad_age_ok') === '1'
   })
   if (!ageConfirmed) {
     return (
       <AgeGate onConfirm={() => {
-        sessionStorage.setItem('ad_age_ok', '1')
+        localStorage.setItem('ad_age_ok', '1')
         setAgeConfirmed(true)
       }} />
     )
@@ -106,10 +117,31 @@ function AgeGate({ onConfirm }: { onConfirm: () => void }) {
               boxShadow: '0 20px 60px -20px oklch(0.62 0.24 18 / 0.5)' }}>
             Yes, I'm 18+ — Enter
           </motion.button>
-          <Link href="/" className="block w-full rounded-2xl py-4 text-base text-center transition-all active:scale-95"
-            style={{ border: '1px solid var(--ad-border)', color: 'var(--ad-muted)' }}>
-            No, take me back
-          </Link>
+          {isNativeApp() ? (
+            <button
+              onClick={() => {
+                // In Capacitor: try to exit the app cleanly.
+                try {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const cap = (globalThis as any).Capacitor
+                  if (cap?.Plugins?.App?.exitApp) {
+                    cap.Plugins.App.exitApp()
+                    return
+                  }
+                } catch { /* fall through */ }
+                window.close()
+              }}
+              className="block w-full rounded-2xl py-4 text-base text-center transition-all active:scale-95"
+              style={{ border: '1px solid var(--ad-border)', color: 'var(--ad-muted)' }}
+            >
+              No, close the app
+            </button>
+          ) : (
+            <Link href="/" className="block w-full rounded-2xl py-4 text-base text-center transition-all active:scale-95"
+              style={{ border: '1px solid var(--ad-border)', color: 'var(--ad-muted)' }}>
+              No, take me back
+            </Link>
+          )}
         </div>
       </motion.div>
     </div>
@@ -148,7 +180,15 @@ function AmbientBackground() {
 function GameView() {
   // ── Nav & heat ──
   const [mode, setMode]           = useState<Mode>('tod')
-  const [intensity, setIntensity] = useState<Intensity>('spicy')
+  const [intensity, setIntensity] = useState<Intensity>(() => {
+    if (typeof window === 'undefined') return 'spicy'
+    const saved = localStorage.getItem('ad_intensity') as Intensity | null
+    return saved && (saved === 'mild' || saved === 'spicy' || saved === 'inferno') ? saved : 'spicy'
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem('ad_intensity', intensity)
+  }, [intensity])
 
   // ── Score ──
   const [p1, setP1] = useState(0)
@@ -472,9 +512,11 @@ function GameView() {
     <div className="after-dark relative min-h-screen overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <AmbientBackground />
 
-      <Link href="/" className="absolute top-4 left-4 z-20 text-xs uppercase tracking-widest opacity-40 hover:opacity-70 transition-opacity" style={{ color: 'var(--ad-muted)' }}>
-        ← Back
-      </Link>
+      {!isNativeApp() && (
+        <Link href="/" className="absolute top-4 left-4 z-20 text-xs uppercase tracking-widest opacity-40 hover:opacity-70 transition-opacity" style={{ color: 'var(--ad-muted)' }}>
+          ← Back
+        </Link>
+      )}
 
       {/* Header */}
       <header className="px-4 pt-12 pb-4 text-center sm:pt-14">

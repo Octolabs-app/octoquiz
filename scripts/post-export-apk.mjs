@@ -1,9 +1,14 @@
-// After `next build` with STATIC_EXPORT=1, this script:
-//   1. Replaces out/index.html with a tiny redirect to /couples/
-//      (the Yomu landing page would try to open Socket.IO — useless in the APK).
-//   2. Logs a small summary.
+// After `next build` with STATIC_EXPORT=1, this script makes the static
+// `out/` directory APK-ready by overwriting the root index.html with the
+// couples page content. The previous redirect approach (out/index.html ->
+// <meta refresh> to /couples/) failed inside Capacitor's WebView and showed
+// a black screen, so we now serve the couples page directly at /.
+//
+// Asset paths inside the couples HTML are absolute (/_next/static/...),
+// which the WebView resolves to https://localhost/_next/static/... — the
+// same place Capacitor puts them. Works without any redirect step.
 
-import { writeFileSync, existsSync, statSync } from 'node:fs'
+import { existsSync, statSync, copyFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,29 +26,11 @@ if (!existsSync(couplesIndex)) {
   process.exit(1)
 }
 
-const redirectHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="refresh" content="0; url=./couples/">
-  <title>After Dark</title>
-  <style>
-    html, body { margin: 0; height: 100%; background: #0a0a14; color: #fff;
-      font-family: system-ui, sans-serif; display: flex; align-items: center;
-      justify-content: center; }
-  </style>
-</head>
-<body>
-  <script>location.replace('./couples/')</script>
-  <noscript><a href="./couples/" style="color:#fff">Open After Dark</a></noscript>
-</body>
-</html>
-`
+const rootIndex = join(outDir, 'index.html')
+copyFileSync(couplesIndex, rootIndex)
 
-writeFileSync(join(outDir, 'index.html'), redirectHtml)
-
-const sz = statSync(couplesIndex).size
+const sz = statSync(rootIndex).size
 console.log('✓ APK static export ready')
-console.log(`  • out/couples/index.html  (${(sz / 1024).toFixed(1)} KB)`)
-console.log('  • out/index.html → redirect → /couples/')
+console.log(`  • out/couples/index.html  (original)`)
+console.log(`  • out/index.html          (couples content, ${(sz / 1024).toFixed(1)} KB)`)
+console.log(`  • Both load the same page — Capacitor's WebView starts at /`)
