@@ -191,47 +191,6 @@ export default function HomePage() {
               ))}
             </motion.div>
 
-            {/* After Dark section */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-              className="mt-8 w-full">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px" style={{ background: 'oklch(0.62 0.24 18 / 0.2)' }} />
-                <span className="text-[9px] uppercase tracking-[0.4em] font-semibold px-2"
-                  style={{ color: 'oklch(0.62 0.24 18 / 0.6)' }}>18+ only</span>
-                <div className="flex-1 h-px" style={{ background: 'oklch(0.62 0.24 18 / 0.2)' }} />
-              </div>
-
-              <Link href="/couples"
-                className="group block w-full rounded-3xl p-5 transition-all active:scale-[0.98] relative overflow-hidden"
-                style={{ background: 'oklch(0.13 0.04 15)', border: '1px solid oklch(0.62 0.24 18 / 0.3)', boxShadow: '0 0 50px -20px oklch(0.62 0.24 18 / 0.45)' }}>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none"
-                  style={{ background: 'radial-gradient(ellipse at 50% 0%, oklch(0.62 0.24 18 / 0.12), transparent 70%)' }} />
-                <div className="relative flex items-center gap-4">
-                  <motion.div animate={{ rotate: [-3, 3, -3] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    className="text-4xl">🕯️</motion.div>
-                  <div className="flex-1 text-left">
-                    <div className="font-black text-lg leading-tight" style={{
-                      background: 'linear-gradient(135deg, oklch(0.62 0.24 18), oklch(0.72 0.18 350) 60%, oklch(0.55 0.18 320))',
-                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-                    }}>After Dark</div>
-                    <div className="text-xs mt-0.5" style={{ color: 'oklch(0.58 0.04 30)' }}>
-                      Intimate couples game · 18+ · For two
-                    </div>
-                  </div>
-                  <span className="text-sm font-bold transition-transform group-hover:translate-x-1"
-                    style={{ color: 'oklch(0.62 0.24 18 / 0.5)' }}>→</span>
-                </div>
-                <div className="relative mt-3 flex gap-2 flex-wrap">
-                  {['Truth or Dare', 'Kama Sutra 🌹', 'Hot Seat 🔥', 'Wheel', 'Never Have I Ever', 'Quiz'].map(tag => (
-                    <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full"
-                      style={{ background: 'oklch(0.62 0.24 18 / 0.1)', border: '1px solid oklch(0.62 0.24 18 / 0.18)', color: 'oklch(0.72 0.18 350 / 0.7)' }}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            </motion.div>
-
             {/* Connection status — escalates after 3s to admit the cold start */}
             <AnimatePresence>
               {!connected && (

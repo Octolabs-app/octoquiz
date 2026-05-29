@@ -6,7 +6,10 @@ import {
   HOT, NHI, POSITIONS, QUIZ, TOD, WHEEL,
   type Intensity, type PositionCard,
 } from '@/data/after-dark'
-import { WYR_CARDS, RIDDLE_CARDS, SPIN_CONSEQUENCES, DARE_JAR_CARDS } from '@/data/after-dark-extra'
+import {
+  WYR_CARDS, RIDDLE_CARDS, SPIN_CONSEQUENCES, DARE_JAR_CARDS, FANTASY_CARDS, ROLEPLAY_CARDS,
+  type FantasyCard, type RoleplayCard,
+} from '@/data/after-dark-extra'
 import { useSound } from '@/hooks/useSound'
 
 // Detect whether we're running inside the Capacitor APK (vs. plain web).
@@ -28,12 +31,14 @@ const SIP_MILESTONES: { at: number; label: string; emoji: string }[] = [
   { at: 75, label: 'Hall of Fame',    emoji: '🏆' },
 ]
 
-type Mode = 'tod' | 'nhi' | 'quiz' | 'hot' | 'pos' | 'wheel' | 'wyr' | 'riddles' | 'spin' | 'jar' | 'ttol'
+type Mode = 'tod' | 'nhi' | 'quiz' | 'hot' | 'pos' | 'wheel' | 'wyr' | 'riddles' | 'spin' | 'jar' | 'ttol' | 'fantasy' | 'roleplay'
 
 const MODES: { id: Mode; label: string; short: string; sub: string; tone: string; emoji: string }[] = [
   { id: 'tod',     label: 'Truth or Dare',    short: 'T or D',   sub: 'Vérité ou défi',          tone: 'from-[var(--ad-primary)] to-[var(--ad-blush)]',  emoji: '🎲' },
   { id: 'wheel',   label: 'Wheel',            short: 'Wheel',    sub: 'Roue du désir',           tone: 'from-[var(--ad-ember)] to-[var(--ad-gold)]',     emoji: '🎰' },
   { id: 'wyr',     label: 'Would You Rather', short: 'WYR',      sub: 'Tu préfères',             tone: 'from-[var(--ad-blush)] to-[var(--ad-violet)]',   emoji: '🤔' },
+  { id: 'fantasy', label: 'Fantasy',          short: 'Fantasy',  sub: 'Fantasmes & désirs',      tone: 'from-[var(--ad-violet)] to-[var(--ad-blush)]',   emoji: '💭' },
+  { id: 'roleplay',label: 'Roleplay',         short: 'Roleplay', sub: 'Jeux de rôle',            tone: 'from-[var(--ad-primary)] to-[var(--ad-violet)]', emoji: '🎭' },
   { id: 'spin',    label: 'Spin Bottle',      short: 'Spin',     sub: 'Tourne la bouteille',     tone: 'from-[var(--ad-primary)] to-[var(--ad-ember)]',  emoji: '🍾' },
   { id: 'riddles', label: 'Dirty Minds',      short: 'Minds',    sub: 'Devinettes coquines',     tone: 'from-[var(--ad-ember)] to-[var(--ad-violet)]',   emoji: '🧩' },
   { id: 'pos',     label: 'Positions',        short: 'Positions',sub: 'Kama Sutra',              tone: 'from-[var(--ad-violet)] to-[var(--ad-primary)]', emoji: '🌹' },
@@ -41,7 +46,7 @@ const MODES: { id: Mode; label: string; short: string; sub: string; tone: string
   { id: 'quiz',    label: 'Couple Quiz',      short: 'Quiz',     sub: 'Qui connaît le mieux',    tone: 'from-[var(--ad-gold)] to-[var(--ad-ember)]',     emoji: '💬' },
   { id: 'hot',     label: 'Hot Seat',         short: 'Hot Seat', sub: 'Siège brûlant',           tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🔥' },
   { id: 'jar',     label: 'Dare Jar',         short: 'Dare Jar', sub: 'Piocher un défi',         tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🫙' },
-  { id: 'ttol',    label: 'Two Truths',       short: 'Truths',   sub: '& Un Mensonge',           tone: 'from-[var(--ad-gold)] to-[var(--ad-blush)]',    emoji: '🎭' },
+  { id: 'ttol',    label: 'Two Truths',       short: 'Truths',   sub: '& Un Mensonge',           tone: 'from-[var(--ad-gold)] to-[var(--ad-blush)]',    emoji: '✌️' },
 ]
 
 const LEVELS: { id: Intensity; label: string; emoji: string }[] = [
@@ -260,6 +265,14 @@ function GameView() {
   // ── Dare Jar ──
   const [jarCard, setJarCard] = useState<typeof DARE_JAR_CARDS[number] | null>(null)
 
+  // ── Fantasy ──
+  const [fantasyCard,  setFantasyCard]  = useState<FantasyCard | null>(null)
+  const [fantasyPhase, setFantasyPhase] = useState<'idle'|'prompt'|'respond'>('idle')
+
+  // ── Roleplay ──
+  const [roleplayCard,  setRoleplayCard]  = useState<RoleplayCard | null>(null)
+  const [roleplayPhase, setRoleplayPhase] = useState<'idle'|'scene'|'acting'>('idle')
+
   // ── Two Truths & a Lie ──
   const [ttolPhase,    setTtolPhase]    = useState<'idle'|'writing'|'guessing'|'reveal'>('idle')
   const [ttolWriter,   setTtolWriter]   = useState<1|2>(1)
@@ -385,6 +398,20 @@ function GameView() {
           setJarCard(pool[Math.floor(Math.random() * pool.length)])
           setCardKey(k => k + 1)
           burstSparks()
+        }
+      } else if (next.id === 'fantasy') {
+        const pool = filteredNew(FANTASY_CARDS)
+        if (pool.length) {
+          setFantasyCard(pool[Math.floor(Math.random() * pool.length)])
+          setFantasyPhase('prompt')
+          setCardKey(k => k + 1); burstSparks()
+        }
+      } else if (next.id === 'roleplay') {
+        const pool = filteredNew(ROLEPLAY_CARDS)
+        if (pool.length) {
+          setRoleplayCard(pool[Math.floor(Math.random() * pool.length)])
+          setRoleplayPhase('scene')
+          setCardKey(k => k + 1); burstSparks()
         }
       }
     }, 280)
@@ -537,6 +564,8 @@ function GameView() {
     setSpinPhase('setup'); setSpinTarget(null); setSpinCard(null)
     setPosTimer(0); setPosTimerOn(false)
     setJarCard(null)
+    setFantasyCard(null); setFantasyPhase('idle')
+    setRoleplayCard(null); setRoleplayPhase('idle')
     setTtolPhase('idle'); setTtolWriter(1); setTtolGuess(null); setTtolLieSlot(null); setTtolTimer(60); setTtolTimerOn(false)
     showToast('🌹 Fresh start')
   }
@@ -1303,6 +1332,182 @@ function GameView() {
               </AnimatePresence>
             </ModeFrame>
           )}
+
+          {/* ── Fantasy 💭 ── */}
+          {mode === 'fantasy' && (
+            <ModeFrame key="fantasy">
+              <AnimatePresence mode="wait">
+
+                {fantasyPhase === 'idle' && (
+                  <motion.div key="fantasy-idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <ADCard sparks={sparks} cardKey="fantasy-idle">
+                      <Placeholder pill="Fantasy 💭" fr="Explore vos désirs les plus secrets." en="Discover what your partner truly dreams of." />
+                    </ADCard>
+                    <BtnRow>
+                      <PrimaryBtn color="var(--ad-violet)" onClick={() => {
+                        haptic(15); playSfx('draw'); setCombo(c => c + 1)
+                        const pool = filteredNew(FANTASY_CARDS)
+                        if (!pool.length) { showToast('No cards at this level'); return }
+                        setFantasyCard(pool[Math.floor(Math.random() * pool.length)])
+                        setFantasyPhase('prompt')
+                        setCardKey(k => k + 1); burstSparks()
+                      }}>💭 Draw a fantasy →</PrimaryBtn>
+                    </BtnRow>
+                  </motion.div>
+                )}
+
+                {fantasyPhase === 'prompt' && fantasyCard && (
+                  <motion.div key="fantasy-prompt" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <ADCard sparks={sparks} cardKey={`fantasy-${cardKey}`}>
+                      <div className="flex flex-col items-center gap-4 w-full">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em]"
+                            style={{ color: 'var(--ad-violet)', border: '1px solid color-mix(in oklab, var(--ad-violet) 40%, transparent)', background: 'color-mix(in oklab, var(--ad-violet) 12%, transparent)' }}>
+                            {fantasyCard.category}
+                          </span>
+                          <span className="text-xs">{fantasyCard.intensity === 'mild' ? '🍬' : fantasyCard.intensity === 'spicy' ? '🌶️' : '🔥'}</span>
+                        </div>
+                        <p className="text-xl font-bold leading-snug sm:text-2xl text-center"
+                          style={{ fontFamily: "'Playfair Display', Georgia, serif", color: 'var(--ad-fg)' }}>
+                          {fantasyCard.prompt_fr ?? fantasyCard.prompt}
+                        </p>
+                        {fantasyCard.prompt_fr && (
+                          <p className="max-w-md text-sm italic text-center" style={{ color: 'var(--ad-muted)' }}>{fantasyCard.prompt}</p>
+                        )}
+                      </div>
+                    </ADCard>
+                    <div className="mt-4 rounded-2xl p-4 text-sm text-center"
+                      style={{ background: 'oklch(0.55 0.18 320 / 0.08)', border: '1px solid oklch(0.55 0.18 320 / 0.2)' }}>
+                      <p style={{ color: 'var(--ad-muted)' }}>
+                        <span style={{ color: 'var(--ad-violet)' }}>⟳ Take turns</span> — one person responds in detail, then the other.
+                      </p>
+                    </div>
+                    <BtnRow>
+                      <PrimaryBtn color="var(--ad-violet)" onClick={() => {
+                        haptic(15); playSfx('draw'); setCombo(c => c + 1)
+                        const pool = filteredNew(FANTASY_CARDS)
+                        if (!pool.length) return
+                        setFantasyCard(pool[Math.floor(Math.random() * pool.length)])
+                        setCardKey(k => k + 1); burstSparks()
+                      }}>💭 New fantasy</PrimaryBtn>
+                      <GhostBtn onClick={() => addSip(0, 1)}>Skip (sip 🥃)</GhostBtn>
+                    </BtnRow>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
+            </ModeFrame>
+          )}
+
+          {/* ── Roleplay 🎭 ── */}
+          {mode === 'roleplay' && (
+            <ModeFrame key="roleplay">
+              <AnimatePresence mode="wait">
+
+                {roleplayPhase === 'idle' && (
+                  <motion.div key="rp-idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <ADCard sparks={sparks} cardKey="rp-idle">
+                      <Placeholder pill="Roleplay 🎭" fr="Devenez des personnages. Vivez le scénario." en="Become characters. Live the scene together." />
+                    </ADCard>
+                    <BtnRow>
+                      <PrimaryBtn onClick={() => {
+                        haptic(15); playSfx('draw'); setCombo(c => c + 1)
+                        const pool = filteredNew(ROLEPLAY_CARDS)
+                        if (!pool.length) { showToast('No scenarios at this level'); return }
+                        setRoleplayCard(pool[Math.floor(Math.random() * pool.length)])
+                        setRoleplayPhase('scene')
+                        setCardKey(k => k + 1); burstSparks()
+                      }}>🎭 Draw a scenario →</PrimaryBtn>
+                    </BtnRow>
+                  </motion.div>
+                )}
+
+                {roleplayPhase === 'scene' && roleplayCard && (
+                  <motion.div key="rp-scene" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="flex flex-col gap-4">
+                    <motion.div
+                      className="relative overflow-hidden rounded-[24px] p-6 text-center"
+                      style={{ background: 'linear-gradient(135deg, oklch(0.62 0.24 18 / 0.15), oklch(0.55 0.18 320 / 0.15))', border: '1px solid oklch(0.55 0.18 320 / 0.3)', boxShadow: 'var(--ad-shadow-card)' }}
+                    >
+                      <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: 'var(--ad-grad-heat)' }} />
+                      <span className="inline-block rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest mb-3"
+                        style={{ background: 'oklch(0.62 0.24 18 / 0.2)', color: 'var(--ad-primary)', border: '1px solid oklch(0.62 0.24 18 / 0.35)' }}>
+                        🎭 {roleplayCard.tag} · {roleplayCard.intensity === 'mild' ? '🍬' : roleplayCard.intensity === 'spicy' ? '🌶️' : '🔥'}
+                      </span>
+                      <p className="text-2xl font-bold mb-2"
+                        style={{ fontFamily: "'Playfair Display', Georgia, serif", color: 'var(--ad-fg)' }}>
+                        {roleplayCard.scene_fr ?? roleplayCard.scene}
+                      </p>
+                      {roleplayCard.scene_fr && (
+                        <p className="text-sm italic" style={{ color: 'var(--ad-muted)' }}>{roleplayCard.scene}</p>
+                      )}
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                      className="rounded-2xl px-5 py-4"
+                      style={{ background: 'color-mix(in oklab, var(--ad-surface) 60%, transparent)', border: '1px solid var(--ad-border)' }}>
+                      <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--ad-gold)' }}>🎬 Setup</p>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--ad-fg)', opacity: 0.9 }}>
+                        {roleplayCard.setup_fr ?? roleplayCard.setup}
+                      </p>
+                      {roleplayCard.setup_fr && (
+                        <p className="text-xs mt-2 italic" style={{ color: 'var(--ad-muted)' }}>{roleplayCard.setup}</p>
+                      )}
+                    </motion.div>
+
+                    <BtnRow>
+                      <PrimaryBtn onClick={() => { haptic(20); setRoleplayPhase('acting') }}>
+                        🎬 Action! Start the scene
+                      </PrimaryBtn>
+                      <GhostBtn onClick={() => {
+                        haptic(15); playSfx('draw')
+                        const pool = filteredNew(ROLEPLAY_CARDS)
+                        if (!pool.length) return
+                        setRoleplayCard(pool[Math.floor(Math.random() * pool.length)])
+                        setCardKey(k => k + 1); burstSparks()
+                      }}>🎲 Different scene</GhostBtn>
+                    </BtnRow>
+                  </motion.div>
+                )}
+
+                {roleplayPhase === 'acting' && roleplayCard && (
+                  <motion.div key="rp-acting" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                    className="flex flex-col gap-4">
+                    <div className="rounded-[24px] p-5 text-center"
+                      style={{ background: 'linear-gradient(135deg, oklch(0.62 0.24 18 / 0.18), oklch(0.55 0.18 320 / 0.18))', border: '1px solid oklch(0.62 0.24 18 / 0.4)', boxShadow: 'var(--ad-shadow-heat)' }}>
+                      <motion.p
+                        animate={{ scale: [1, 1.04, 1] }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
+                        className="text-4xl mb-2">🎬</motion.p>
+                      <p className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--ad-fg)' }}>
+                        {roleplayCard.scene_fr ?? roleplayCard.scene}
+                      </p>
+                      <p className="text-[10px] uppercase tracking-widest mt-2" style={{ color: 'var(--ad-gold)' }}>
+                        Scene is live — stay in character!
+                      </p>
+                    </div>
+                    <div className="rounded-2xl px-4 py-3 text-xs text-center"
+                      style={{ color: 'var(--ad-muted)', background: 'color-mix(in oklab, var(--ad-surface) 50%, transparent)', border: '1px solid var(--ad-border)' }}>
+                      💡 Stay in character as long as possible. Use a safe word to pause.
+                    </div>
+                    <BtnRow>
+                      <PrimaryBtn onClick={() => {
+                        haptic(15); playSfx('draw'); setCombo(c => c + 1)
+                        const pool = filteredNew(ROLEPLAY_CARDS)
+                        if (!pool.length) return
+                        setRoleplayCard(pool[Math.floor(Math.random() * pool.length)])
+                        setRoleplayPhase('scene')
+                        setCardKey(k => k + 1); burstSparks()
+                      }}>🎭 New scenario</PrimaryBtn>
+                      <GhostBtn onClick={() => { addSip(0, 1); showToast('🐔 Scene ended — both sip!') }}>End scene (sip 🥃)</GhostBtn>
+                    </BtnRow>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
+            </ModeFrame>
+          )}
+
         </AnimatePresence>
 
         {/* Reset */}
@@ -1547,14 +1752,28 @@ function PositionView({ pos, cardKey, sparks, posTimer, posTimerOn, posMaxTimer,
             </div>
           ) : (
             <>
-              {/* Illustration panel */}
-              <div className="relative flex items-center justify-center py-5"
+              {/* Emoji visual panel */}
+              <div className="relative flex flex-col items-center justify-center py-6"
                 style={{ background: 'linear-gradient(180deg, oklch(0.14 0.06 15 / 0.8) 0%, oklch(0.1 0.03 15 / 0.4) 100%)' }}>
-                {/* ambient glow behind figure */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="h-32 w-48 rounded-full blur-3xl" style={{ background: 'oklch(0.62 0.24 18 / 0.18)' }} />
+                  <div className="h-40 w-56 rounded-full blur-3xl" style={{ background: 'oklch(0.55 0.18 320 / 0.22)' }} />
                 </div>
-                <PosIllustration svgId={pos.svgId} />
+                <motion.span
+                  animate={{ scale: [1, 1.06, 1], rotate: [-2, 2, -2] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="relative z-10 text-7xl sm:text-8xl leading-none ad-float"
+                  style={{ filter: 'drop-shadow(0 8px 32px oklch(0.55 0.18 320 / 0.4))' }}>
+                  {pos.icon}
+                </motion.span>
+                {/* Keyword badge row */}
+                <div className="relative z-10 flex flex-wrap justify-center gap-1.5 mt-3 px-4">
+                  {pos.keywords.map(kw => (
+                    <span key={kw} className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest"
+                      style={{ background: 'oklch(0.55 0.18 320 / 0.15)', color: 'var(--ad-violet)', border: '1px solid oklch(0.55 0.18 320 / 0.25)' }}>
+                      {kw}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               {/* Content panel */}
@@ -1656,235 +1875,7 @@ function PositionView({ pos, cardKey, sparks, posTimer, posTimerOn, posMaxTimer,
   )
 }
 
-// ── Kama Sutra SVG Illustrations ──────────────
-function PosIllustration({ svgId }: { svgId: number }) {
-  const P1 = '#e05858'   // crimson – receiver / bottom
-  const P2 = '#d4609a'   // pink    – giver / top
 
-  const sp = {
-    width: 200, height: 140,
-    viewBox: '0 0 200 140',
-    style: { filter: 'drop-shadow(0 6px 24px rgba(210,80,120,0.32))' },
-  }
-
-  // helpers
-  const fl = (y: number) => (
-    <line x1={10} y1={y} x2={190} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth={1.5} strokeLinecap="round"/>
-  )
-  const hd = (cx: number, cy: number, c: string, r = 11.5) => (
-    <circle cx={cx} cy={cy} r={r} fill={c + '40'} stroke={c} strokeWidth={2.5}/>
-  )
-  const jt = (cx: number, cy: number, c: string) => (
-    <circle cx={cx} cy={cy} r={3.5} fill={c} opacity={0.65}/>
-  )
-  const sg = (d: string, c: string, w: number) => (
-    <path d={d} fill="none" stroke={c} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round"/>
-  )
-
-  // 1 — Missionary
-  if (svgId === 1) return (
-    <svg {...sp}>
-      {fl(134)}
-      {hd(28, 108, P1)}{sg('M40,108 Q95,106 145,108', P1, 9)}
-      {sg('M145,108 Q156,91 158,70', P1, 6)}{sg('M145,108 Q162,116 166,130', P1, 6)}
-      {sg('M72,108 Q64,116 58,126', P1, 5)}{sg('M105,108 Q115,116 120,126', P1, 5)}
-      {jt(40,108,P1)}{jt(145,108,P1)}
-      {hd(30, 80, P2)}{sg('M42,82 Q92,88 148,96', P2, 9)}
-      {sg('M148,96 Q158,82 160,64', P2, 6)}{sg('M148,96 Q162,106 164,120', P2, 6)}
-      {sg('M75,85 Q64,92 55,106', P2, 5)}
-      {jt(42,82,P2)}{jt(148,96,P2)}
-    </svg>
-  )
-
-  // 2 — Spooning
-  if (svgId === 2) return (
-    <svg {...sp}>
-      {fl(132)}
-      {hd(32, 98, P1)}{sg('M44,99 Q95,101 148,104', P1, 9)}
-      {sg('M148,104 Q162,108 172,120', P1, 6)}{sg('M148,104 Q162,115 168,128', P1, 4)}
-      {jt(44,99,P1)}{jt(148,104,P1)}
-      {hd(44, 74, P2)}{sg('M56,76 Q104,80 155,87', P2, 9)}
-      {sg('M155,87 Q168,79 176,68', P2, 6)}{sg('M155,87 Q168,96 174,110', P2, 6)}
-      {sg('M88,78 Q82,88 78,100', P2, 5)}
-      {jt(56,76,P2)}{jt(155,87,P2)}
-    </svg>
-  )
-
-  // 3 — Lotus
-  if (svgId === 3) return (
-    <svg {...sp}>
-      {hd(100, 58, P1)}{sg('M100,70 Q100,83 100,96', P1, 9)}
-      {sg('M100,96 Q82,110 62,124', P1, 6)}{sg('M62,124 Q80,130 100,125', P1, 4)}
-      {sg('M100,96 Q118,110 138,124', P1, 6)}{sg('M138,124 Q120,130 100,125', P1, 4)}
-      {sg('M100,82 Q82,74 72,68', P1, 5)}{sg('M100,82 Q118,74 128,68', P1, 5)}
-      {jt(100,70,P1)}{jt(100,96,P1)}
-      {hd(100, 28, P2)}{sg('M100,40 Q100,55 100,70', P2, 9)}
-      {sg('M100,70 Q82,82 68,90', P2, 6)}{sg('M100,70 Q118,82 132,90', P2, 6)}
-      {sg('M100,54 Q80,64 72,74', P2, 5)}{sg('M100,54 Q120,64 128,74', P2, 5)}
-      {jt(100,40,P2)}{jt(100,70,P2)}
-    </svg>
-  )
-
-  // 4 — Cowgirl
-  if (svgId === 4) return (
-    <svg {...sp}>
-      {fl(133)}
-      {hd(28, 110, P1)}{sg('M40,110 Q95,109 148,110', P1, 9)}
-      {sg('M148,110 Q162,102 168,92', P1, 6)}{sg('M148,110 Q162,118 168,128', P1, 6)}
-      {sg('M80,110 Q72,118 66,128', P1, 5)}{sg('M108,110 Q118,118 122,128', P1, 5)}
-      {jt(40,110,P1)}{jt(148,110,P1)}
-      {hd(108, 33, P2)}{sg('M108,44 Q108,64 108,86', P2, 9)}
-      {sg('M108,86 Q90,100 82,116', P2, 6)}{sg('M108,86 Q126,100 134,116', P2, 6)}
-      {sg('M108,60 Q90,72 80,82', P2, 5)}{sg('M108,60 Q126,72 136,82', P2, 5)}
-      {jt(108,44,P2)}{jt(108,86,P2)}
-    </svg>
-  )
-
-  // 5 — Reverse Cowgirl
-  if (svgId === 5) return (
-    <svg {...sp}>
-      {fl(133)}
-      {hd(28, 110, P1)}{sg('M40,110 Q95,109 148,110', P1, 9)}
-      {sg('M148,110 Q162,102 168,92', P1, 6)}{sg('M148,110 Q162,118 168,128', P1, 6)}
-      {sg('M80,110 Q72,118 66,128', P1, 5)}{sg('M108,110 Q118,118 122,128', P1, 5)}
-      {jt(40,110,P1)}{jt(148,110,P1)}
-      {hd(108, 33, P2)}{sg('M108,44 Q108,64 108,86', P2, 9)}
-      {sg('M108,86 Q90,100 82,116', P2, 6)}{sg('M108,86 Q126,100 134,116', P2, 6)}
-      {sg('M108,60 Q126,66 145,72', P2, 5)}{sg('M108,68 Q132,76 152,84', P2, 5)}
-      {jt(108,44,P2)}{jt(108,86,P2)}
-    </svg>
-  )
-
-  // 6 — Doggy Style
-  if (svgId === 6) return (
-    <svg {...sp}>
-      {fl(134)}
-      {hd(36, 82, P1)}{sg('M48,84 Q75,80 102,84 Q128,88 142,94', P1, 9)}
-      {sg('M65,82 Q52,100 42,118', P1, 6)}{sg('M42,118 Q30,125 22,128', P1, 4)}
-      {sg('M142,94 Q148,112 148,130', P1, 6)}{sg('M142,94 Q158,110 162,130', P1, 6)}
-      {jt(65,82,P1)}{jt(142,94,P1)}
-      {hd(168, 46, P2)}{sg('M168,57 Q166,74 164,96', P2, 9)}
-      {sg('M168,74 Q158,82 145,88', P2, 5)}{sg('M168,80 Q157,87 144,92', P2, 5)}
-      {sg('M164,96 Q155,116 152,132', P2, 6)}{sg('M164,96 Q175,116 178,132', P2, 6)}
-      {jt(168,57,P2)}{jt(164,96,P2)}
-    </svg>
-  )
-
-  // 7 — The Chair
-  if (svgId === 7) return (
-    <svg {...sp}>
-      <line x1={70} y1={70} x2={70} y2={134} stroke="#9ca3af" strokeWidth={3} strokeLinecap="round" opacity={0.35}/>
-      <line x1={130} y1={70} x2={130} y2={134} stroke="#9ca3af" strokeWidth={3} strokeLinecap="round" opacity={0.35}/>
-      <line x1={65} y1={108} x2={135} y2={108} stroke="#9ca3af" strokeWidth={3} strokeLinecap="round" opacity={0.35}/>
-      <line x1={58} y1={70} x2={142} y2={70} stroke="#9ca3af" strokeWidth={4} strokeLinecap="round" opacity={0.35}/>
-      {hd(100, 56, P1)}{sg('M100,68 Q100,84 100,108', P1, 9)}
-      {sg('M100,108 Q84,108 70,108', P1, 6)}{sg('M70,108 Q68,120 68,134', P1, 4)}
-      {sg('M100,108 Q116,108 130,108', P1, 6)}{sg('M130,108 Q132,120 132,134', P1, 4)}
-      {jt(100,68,P1)}{jt(100,108,P1)}
-      {hd(100, 28, P2)}{sg('M100,40 Q100,56 100,72', P2, 9)}
-      {sg('M100,72 Q80,90 72,108', P2, 6)}{sg('M100,72 Q120,90 128,108', P2, 6)}
-      {sg('M100,54 Q80,62 68,72', P2, 5)}{sg('M100,54 Q120,62 132,72', P2, 5)}
-      {jt(100,40,P2)}{jt(100,72,P2)}
-    </svg>
-  )
-
-  // 8 — Butterfly
-  if (svgId === 8) return (
-    <svg {...sp}>
-      {fl(133)}
-      {hd(26, 106, P1)}{sg('M38,106 Q85,104 132,105', P1, 9)}
-      {sg('M132,105 Q145,78 150,54', P1, 6)}{sg('M150,54 Q158,46 162,44', P1, 4)}
-      {sg('M132,105 Q152,80 162,56', P1, 6)}{sg('M162,56 Q170,48 172,46', P1, 4)}
-      {sg('M72,105 Q62,114 55,124', P1, 5)}
-      {jt(38,106,P1)}{jt(132,105,P1)}
-      {hd(162, 28, P2)}{sg('M162,39 Q162,58 162,84', P2, 9)}
-      {sg('M162,60 Q156,54 152,50', P2, 5)}{sg('M162,68 Q168,60 170,54', P2, 5)}
-      {sg('M162,84 Q152,110 150,130', P2, 6)}{sg('M162,84 Q172,110 174,130', P2, 6)}
-      {jt(162,39,P2)}{jt(162,84,P2)}
-    </svg>
-  )
-
-  // 9 — 69
-  if (svgId === 9) return (
-    <svg {...sp}>
-      {hd(162, 46, P1)}{sg('M150,52 Q105,70 56,90', P1, 9)}
-      {sg('M56,90 Q38,76 28,62', P1, 6)}{sg('M56,90 Q40,104 28,118', P1, 6)}
-      {sg('M162,60 Q170,72 174,82', P1, 5)}
-      {jt(150,52,P1)}{jt(56,90,P1)}
-      {hd(38, 98, P2)}{sg('M50,94 Q95,75 144,56', P2, 9)}
-      {sg('M144,56 Q162,42 174,30', P2, 6)}{sg('M144,56 Q162,68 172,80', P2, 6)}
-      {sg('M38,112 Q28,118 22,124', P2, 5)}
-      {jt(50,94,P2)}{jt(144,56,P2)}
-    </svg>
-  )
-
-  // 10 — Scissors
-  if (svgId === 10) return (
-    <svg {...sp}>
-      {fl(132)}
-      {hd(30, 72, P1)}{sg('M42,74 Q90,80 142,88', P1, 9)}
-      {sg('M142,88 Q158,78 168,70', P1, 6)}{sg('M142,88 Q158,98 168,106', P1, 6)}
-      {sg('M72,76 Q64,58 60,46', P1, 5)}
-      {jt(42,74,P1)}{jt(142,88,P1)}
-      {hd(170, 100, P2)}{sg('M158,98 Q110,90 58,84', P2, 9)}
-      {sg('M58,84 Q44,72 32,60', P2, 6)}{sg('M58,84 Q44,96 30,104', P2, 6)}
-      {sg('M128,96 Q132,114 134,126', P2, 5)}
-      {jt(158,98,P2)}{jt(58,84,P2)}
-    </svg>
-  )
-
-  // 11 — Against the Wall
-  if (svgId === 11) return (
-    <svg {...sp}>
-      <line x1={16} y1={12} x2={16} y2={138} stroke="#9ca3af" strokeWidth={5} strokeLinecap="round" opacity={0.35}/>
-      {hd(50, 46, P1)}{sg('M50,57 Q60,72 66,88', P1, 9)}
-      {sg('M58,70 Q36,64 18,56', P1, 5)}{sg('M60,78 Q38,76 18,76', P1, 5)}
-      {sg('M66,88 Q56,110 52,130', P1, 6)}{sg('M66,88 Q78,110 82,130', P1, 6)}
-      {jt(50,57,P1)}{jt(66,88,P1)}
-      {hd(120, 44, P2)}{sg('M120,56 Q118,72 116,96', P2, 9)}
-      {sg('M120,74 Q98,82 80,88', P2, 5)}{sg('M120,82 Q99,88 82,93', P2, 5)}
-      {sg('M116,96 Q106,116 102,132', P2, 6)}{sg('M116,96 Q128,116 132,132', P2, 6)}
-      {jt(120,56,P2)}{jt(116,96,P2)}
-    </svg>
-  )
-
-  // 12 — Pretzel
-  if (svgId === 12) return (
-    <svg {...sp}>
-      {fl(133)}
-      {hd(30, 94, P1)}{sg('M42,95 Q90,98 145,100', P1, 9)}
-      {sg('M145,100 Q162,116 168,130', P1, 6)}
-      {sg('M145,100 Q140,75 132,56', P1, 6)}{sg('M132,56 Q128,48 130,42', P1, 4)}
-      {sg('M75,95 Q65,118 60,130', P1, 5)}
-      {jt(42,95,P1)}{jt(145,100,P1)}
-      {hd(164, 54, P2)}{sg('M164,65 Q162,80 160,98', P2, 9)}
-      {sg('M164,78 Q148,66 132,56', P2, 5)}{sg('M164,82 Q176,78 184,72', P2, 5)}
-      {sg('M160,98 Q150,118 146,132', P2, 6)}{sg('M160,98 Q172,116 176,132', P2, 6)}
-      {jt(164,65,P2)}{jt(160,98,P2)}
-    </svg>
-  )
-
-  // 13 — Wheelbarrow
-  if (svgId === 13) return (
-    <svg {...sp}>
-      {fl(133)}
-      {hd(36, 118, P1)}{sg('M40,107 Q62,88 84,74', P1, 9)}
-      {sg('M56,94 Q40,108 24,116', P1, 6)}{sg('M24,116 Q16,122 14,130', P1, 4)}
-      {sg('M84,74 Q102,58 118,50', P1, 6)}{sg('M84,74 Q98,58 106,48', P1, 6)}
-      {jt(56,94,P1)}{jt(84,74,P1)}
-      {hd(148, 40, P2)}{sg('M148,51 Q148,68 148,90', P2, 9)}
-      {sg('M148,68 Q134,60 118,52', P2, 5)}{sg('M148,72 Q128,64 108,54', P2, 5)}
-      {sg('M148,90 Q136,112 132,132', P2, 6)}{sg('M148,90 Q160,112 164,132', P2, 6)}
-      {jt(148,51,P2)}{jt(148,90,P2)}
-    </svg>
-  )
-
-  return (
-    <svg {...sp}>
-      <text x="100" y="75" textAnchor="middle" fill={P1} fontSize="48">💋</text>
-    </svg>
-  )
-}
 
 function Reel({ items, spinning, finalIdx }: { items: string[]; spinning: boolean; finalIdx: number | null }) {
   const list = useMemo(() => {
