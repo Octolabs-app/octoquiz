@@ -11,7 +11,7 @@
     "apk:init": "npx cap add android",
     "apk:sync": "npm run apk:export && npx cap sync android",
     "apk:open": "npx cap open android",
-    "apk:build": "npm run apk:sync && cd android && ./gradlew assembleDebug"
+    "apk:build": "npm run apk:sync && cd android && gradlew.bat assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
