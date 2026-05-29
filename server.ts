@@ -345,7 +345,7 @@ app.prepare().then(() => {
     })
 
     // ── Start game ──
-    socket.on('start_game', () => {
+    socket.on('start_game', async () => {
       const room = rm.findRoomBySocket(socket.id)
       if (!room) return
       if (socket.id !== room.gameMasterId && socket.id !== room.hostId) return
@@ -366,7 +366,7 @@ app.prepare().then(() => {
 
       switch (room.currentGame) {
         case 'trivia': {
-          const state = createTriviaGame('Mixed', 10)
+          const state = await createTriviaGame('Mixed', 10)
           rm.setGameState(room.code, state)
           broadcast(room.code)
           broadcastGame(room.code)

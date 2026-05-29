@@ -14,14 +14,14 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export function createTriviaGame(category = 'General', questionCount = 10): TriviaState {
+// ─── Local question bank (fallback) ──────────────────────────────────────────
+function buildLocalQuestions(category: string, questionCount: number): TriviaQuestion[] {
   const cats = triviaData.categories as Record<string, { q: string; o: string[]; a: number }[]>
   const pool = category === 'Mixed'
     ? Object.values(cats).flat()
     : (cats[category] ?? cats['General'])
 
-  const selected = shuffle(pool).slice(0, questionCount)
-  const questions: TriviaQuestion[] = selected.map((q, i) => ({
+  return shuffle(pool).slice(0, questionCount).map((q, i) => ({
     id: `q${i}`,
     question: q.q,
     options: q.o,
@@ -29,6 +29,59 @@ export function createTriviaGame(category = 'General', questionCount = 10): Triv
     category,
     points: POINTS_MAX,
   }))
+}
+
+// ─── Open Trivia Database (https://opentdb.com) ───────────────────────────────
+// Free, ~4000+ questions. No API key. Rate limit: ~1 request / 5s per IP, so we
+// fetch the whole game's worth in one call. Falls back to the local bank on any
+// failure (network, rate-limit, offline dev, etc).
+interface OTDBResult {
+  category: string
+  question: string
+  correct_answer: string
+  incorrect_answers: string[]
+}
+
+// OpenTDB base64-encodes every field (encode=base64) so punctuation/accents
+// survive transport without HTML entities.
+function b64(s: string): string {
+  try { return Buffer.from(s, 'base64').toString('utf8') } catch { return s }
+}
+
+async function fetchOpenTDB(questionCount: number): Promise<TriviaQuestion[] | null> {
+  const amount = Math.min(50, Math.max(1, questionCount))
+  const url = `https://opentdb.com/api.php?amount=${amount}&type=multiple&encode=base64`
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) return null
+    const data = (await res.json()) as { response_code: number; results: OTDBResult[] }
+    if (data.response_code !== 0 || !Array.isArray(data.results) || data.results.length === 0) {
+      return null
+    }
+    return data.results.map((r, i) => {
+      const correct = b64(r.correct_answer)
+      const options = shuffle([correct, ...r.incorrect_answers.map(b64)])
+      return {
+        id: `q${i}`,
+        question: b64(r.question),
+        options,
+        correctIndex: options.indexOf(correct),
+        category: b64(r.category),
+        points: POINTS_MAX,
+      }
+    })
+  } catch {
+    return null
+  }
+}
+
+export async function createTriviaGame(category = 'Mixed', questionCount = 10): Promise<TriviaState> {
+  // Prefer the big OpenTDB pool; fall back to the bundled bank if it's
+  // unreachable so the game always works (offline / rate-limited / etc).
+  const remote = await fetchOpenTDB(questionCount)
+  const questions = (remote && remote.length > 0)
+    ? remote
+    : buildLocalQuestions(category, questionCount)
 
   return {
     game: 'trivia',
