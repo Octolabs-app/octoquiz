@@ -32,7 +32,7 @@
   background-attachment: fixed;
   color: var(--ad-fg);
   font-family: 'Inter', 'DM Sans', sans-serif;
-  min-height: 100dvh;
+  /* height is set inline as 100dvh via the flex-col container */
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;

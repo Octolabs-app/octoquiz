@@ -30,18 +30,18 @@ const SIP_MILESTONES: { at: number; label: string; emoji: string }[] = [
 
 type Mode = 'tod' | 'nhi' | 'quiz' | 'hot' | 'pos' | 'wheel' | 'wyr' | 'riddles' | 'spin' | 'jar' | 'ttol'
 
-const MODES: { id: Mode; label: string; sub: string; tone: string; emoji: string }[] = [
-  { id: 'tod',     label: 'Truth or Dare',    sub: 'Vérité ou défi',          tone: 'from-[var(--ad-primary)] to-[var(--ad-blush)]',  emoji: '🎲' },
-  { id: 'wheel',   label: 'Wheel',            sub: 'Roue du désir',           tone: 'from-[var(--ad-ember)] to-[var(--ad-gold)]',     emoji: '🎰' },
-  { id: 'wyr',     label: 'Would You Rather', sub: 'Tu préfères',             tone: 'from-[var(--ad-blush)] to-[var(--ad-violet)]',   emoji: '🤔' },
-  { id: 'spin',    label: 'Spin Bottle',      sub: 'Tourne la bouteille',     tone: 'from-[var(--ad-primary)] to-[var(--ad-ember)]',  emoji: '🍾' },
-  { id: 'riddles', label: 'Dirty Minds',      sub: 'Devinettes coquines',     tone: 'from-[var(--ad-ember)] to-[var(--ad-violet)]',   emoji: '🧩' },
-  { id: 'pos',     label: 'Positions',        sub: 'Kama Sutra',              tone: 'from-[var(--ad-violet)] to-[var(--ad-primary)]', emoji: '🌹' },
-  { id: 'nhi',     label: 'Never Have I…',    sub: 'Je n\'ai jamais',         tone: 'from-[var(--ad-violet)] to-[var(--ad-blush)]',   emoji: '🙈' },
-  { id: 'quiz',    label: 'Couple Quiz',      sub: 'Qui connaît le mieux',    tone: 'from-[var(--ad-gold)] to-[var(--ad-ember)]',     emoji: '💬' },
-  { id: 'hot',     label: 'Hot Seat',         sub: 'Siège brûlant',           tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🔥' },
-  { id: 'jar',     label: 'Dare Jar',         sub: 'Piocher un défi',         tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🫙' },
-  { id: 'ttol',    label: 'Two Truths',       sub: '& Un Mensonge',           tone: 'from-[var(--ad-gold)] to-[var(--ad-blush)]',    emoji: '🎭' },
+const MODES: { id: Mode; label: string; short: string; sub: string; tone: string; emoji: string }[] = [
+  { id: 'tod',     label: 'Truth or Dare',    short: 'T or D',   sub: 'Vérité ou défi',          tone: 'from-[var(--ad-primary)] to-[var(--ad-blush)]',  emoji: '🎲' },
+  { id: 'wheel',   label: 'Wheel',            short: 'Wheel',    sub: 'Roue du désir',           tone: 'from-[var(--ad-ember)] to-[var(--ad-gold)]',     emoji: '🎰' },
+  { id: 'wyr',     label: 'Would You Rather', short: 'WYR',      sub: 'Tu préfères',             tone: 'from-[var(--ad-blush)] to-[var(--ad-violet)]',   emoji: '🤔' },
+  { id: 'spin',    label: 'Spin Bottle',      short: 'Spin',     sub: 'Tourne la bouteille',     tone: 'from-[var(--ad-primary)] to-[var(--ad-ember)]',  emoji: '🍾' },
+  { id: 'riddles', label: 'Dirty Minds',      short: 'Minds',    sub: 'Devinettes coquines',     tone: 'from-[var(--ad-ember)] to-[var(--ad-violet)]',   emoji: '🧩' },
+  { id: 'pos',     label: 'Positions',        short: 'Positions',sub: 'Kama Sutra',              tone: 'from-[var(--ad-violet)] to-[var(--ad-primary)]', emoji: '🌹' },
+  { id: 'nhi',     label: 'Never Have I…',    short: 'NHI',      sub: 'Je n\'ai jamais',         tone: 'from-[var(--ad-violet)] to-[var(--ad-blush)]',   emoji: '🙈' },
+  { id: 'quiz',    label: 'Couple Quiz',      short: 'Quiz',     sub: 'Qui connaît le mieux',    tone: 'from-[var(--ad-gold)] to-[var(--ad-ember)]',     emoji: '💬' },
+  { id: 'hot',     label: 'Hot Seat',         short: 'Hot Seat', sub: 'Siège brûlant',           tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🔥' },
+  { id: 'jar',     label: 'Dare Jar',         short: 'Dare Jar', sub: 'Piocher un défi',         tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🫙' },
+  { id: 'ttol',    label: 'Two Truths',       short: 'Truths',   sub: '& Un Mensonge',           tone: 'from-[var(--ad-gold)] to-[var(--ad-blush)]',    emoji: '🎭' },
 ]
 
 const LEVELS: { id: Intensity; label: string; emoji: string }[] = [
@@ -542,7 +542,7 @@ function GameView() {
   }
 
   return (
-    <div className="after-dark relative min-h-screen overflow-y-auto overflow-x-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="after-dark relative flex flex-col overflow-hidden" style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}>
       <AmbientBackground />
 
       {!isNativeApp() && (
@@ -551,31 +551,29 @@ function GameView() {
         </Link>
       )}
 
-      {/* Header */}
-      <header className="px-4 pt-12 pb-4 text-center sm:pt-14">
-        <p className="mb-2 text-[10px] uppercase tracking-[0.4em]" style={{ color: 'var(--ad-gold)' }}>After Dark Edition · 18+</p>
-        <motion.h1
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', bounce: 0.4 }}
-          className="text-4xl font-bold leading-[0.95] sm:text-7xl"
+      {/* Header — compact for mobile */}
+      <header className="shrink-0 flex items-center justify-center gap-3 px-4 pt-4 pb-2">
+        <span className="ad-flame text-lg">🕯️</span>
+        <h1
+          className="text-2xl font-bold leading-none"
           style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
         >
           <span className="ad-text-gradient">After</span>{' '}
           <span className="italic" style={{ color: 'var(--ad-fg)', opacity: 0.9 }}>Dark</span>
-        </motion.h1>
-        <p className="mx-auto mt-3 max-w-md text-xs sm:text-sm" style={{ color: 'var(--ad-muted)' }}>
-          Un jeu intime pour deux ou plus. <span className="ad-flame">🕯️</span>
-        </p>
+        </h1>
+        <span className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest"
+          style={{ background: 'oklch(0.62 0.24 18 / 0.15)', border: '1px solid oklch(0.62 0.24 18 / 0.3)', color: 'var(--ad-primary)' }}>
+          18+
+        </span>
       </header>
 
       {/* Score + Heat */}
-      <section className="mx-auto mb-4 flex max-w-2xl flex-col items-center gap-3 px-4">
+      <section className="shrink-0 mx-auto mb-1 flex max-w-2xl flex-col items-center gap-2 px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="ad-glass flex w-full items-center justify-between rounded-full px-5 py-3"
+          className="ad-glass flex w-full items-center justify-between rounded-full px-4 py-2"
           style={{ border: '1px solid var(--ad-border)', boxShadow: 'var(--ad-shadow-card)' }}
         >
           {editingNames ? (
@@ -614,61 +612,52 @@ function GameView() {
           )}
         </motion.div>
 
-        {/* Quick actions — Cheers + Surprise Me + Combo */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        {/* Quick actions — Cheers + Surprise Me + Combo + Heat on one row */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
           <motion.button
             whileTap={{ scale: 0.94 }}
             onClick={cheers}
-            className="flex min-h-[40px] items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all"
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition-all"
             style={{
               background: 'linear-gradient(135deg, var(--ad-ember), var(--ad-gold))',
-              boxShadow: '0 6px 24px -8px oklch(0.68 0.2 40 / 0.6)',
+              boxShadow: '0 4px 16px -6px oklch(0.68 0.2 40 / 0.6)',
             }}
           >
-            🍻 Cheers!
+            🍻 Cheers
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.94 }}
             onClick={surpriseMe}
-            className="flex min-h-[40px] items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all"
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition-all"
             style={{
               background: 'linear-gradient(135deg, var(--ad-violet), var(--ad-primary))',
-              boxShadow: '0 6px 24px -8px oklch(0.62 0.24 18 / 0.5)',
+              boxShadow: '0 4px 16px -6px oklch(0.62 0.24 18 / 0.5)',
             }}
           >
-            🎲 Surprise Me
+            🎲 Surprise
           </motion.button>
           {combo >= 3 && (
             <motion.div
               initial={{ scale: 0, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
-              className="flex min-h-[40px] items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
-              style={{
-                border: '1px solid var(--ad-gold)',
-                color: 'var(--ad-gold)',
-                background: 'oklch(0.78 0.13 80 / 0.1)',
-              }}
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
+              style={{ border: '1px solid var(--ad-gold)', color: 'var(--ad-gold)', background: 'oklch(0.78 0.13 80 / 0.1)' }}
             >
-              🔥 ×{combo} combo
+              🔥×{combo}
             </motion.div>
           )}
-        </div>
-
-        {/* Heat selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-[0.3em]" style={{ color: 'var(--ad-muted)' }}>Heat</span>
-          <div className="flex gap-1 rounded-full p-1" style={{ border: '1px solid var(--ad-border)', background: 'color-mix(in oklab, var(--ad-surface) 60%, transparent)' }}>
+          {/* Heat inline */}
+          <div className="flex gap-0.5 rounded-full p-0.5" style={{ border: '1px solid var(--ad-border)', background: 'color-mix(in oklab, var(--ad-surface) 60%, transparent)' }}>
             {LEVELS.map(l => {
               const active = intensity === l.id
               const colors: Record<Intensity, string> = { mild: 'var(--ad-blush)', spicy: 'var(--ad-ember)', inferno: 'var(--ad-primary)' }
               return (
-                <motion.button key={l.id} whileTap={{ scale: 0.93 }}
+                <motion.button key={l.id} whileTap={{ scale: 0.90 }}
                   onClick={() => { haptic(); setIntensity(l.id) }}
-                  className="flex min-h-[40px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all"
+                  className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all"
                   style={{
                     background: active ? (l.id === 'inferno' ? 'var(--ad-grad-heat)' : colors[l.id]) : 'transparent',
                     color: active ? '#fff' : 'var(--ad-muted)',
-                    boxShadow: active && l.id === 'inferno' ? 'var(--ad-shadow-heat)' : 'none',
                   }}
                 >
                   <span className={active && l.id === 'inferno' ? 'ad-flame' : ''}>{l.emoji}</span>
@@ -680,43 +669,40 @@ function GameView() {
         </div>
       </section>
 
-      {/* Mode grid */}
-      <div className="mx-auto mb-6 grid max-w-2xl grid-cols-3 gap-3 px-4">
-        {MODES.map((m, i) => {
+      {/* Mode strip — horizontal scroll */}
+      <div className="shrink-0 flex gap-2 overflow-x-auto px-4 pb-2 ad-scrollbar-hide">
+        {MODES.map((m) => {
           const active = mode === m.id
           return (
             <motion.button key={m.id}
-              initial={{ opacity: 0, scale: 0.85, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: i * 0.035, type: 'spring', bounce: 0.35 }}
-              whileTap={{ scale: 0.92 }}
+              whileTap={{ scale: 0.90 }}
               onClick={() => { haptic(); setMode(m.id) }}
-              className="relative overflow-hidden rounded-2xl p-3 text-left"
+              className="relative shrink-0 flex flex-col items-center gap-1 rounded-2xl px-3 py-2 overflow-hidden transition-all"
               style={{
+                minWidth: '60px',
                 border: `1px solid ${active ? 'transparent' : 'var(--ad-border)'}`,
                 background: active ? undefined : 'color-mix(in oklab, var(--ad-surface) 50%, transparent)',
-                boxShadow: active ? 'var(--ad-shadow-heat)' : '0 2px 8px rgba(0,0,0,0.3)',
-                minHeight: '80px',
+                boxShadow: active ? 'var(--ad-shadow-heat)' : 'none',
               }}
             >
               {active && (
-                <motion.div layoutId="active-tab-bg"
-                  className={`absolute inset-0 -z-0 bg-gradient-to-br ${m.tone}`}
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+                <motion.div layoutId="mode-strip-bg"
+                  className={`absolute inset-0 bg-gradient-to-br ${m.tone}`}
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
                 />
               )}
-              <div className="relative z-10 flex flex-col gap-1">
-                <span className="text-2xl">{m.emoji}</span>
-                <div className="text-[11px] font-bold leading-tight" style={{ color: active ? '#fff' : 'var(--ad-fg)', fontFamily: "'Playfair Display', Georgia, serif" }}>{m.label}</div>
-                <div className="text-[8px] uppercase tracking-[0.15em] opacity-70" style={{ color: active ? 'rgba(255,255,255,0.8)' : 'var(--ad-muted)' }}>{m.sub}</div>
-              </div>
+              <span className="relative z-10 text-xl leading-none">{m.emoji}</span>
+              <span className="relative z-10 text-[10px] font-bold leading-tight text-center"
+                style={{ color: active ? '#fff' : 'var(--ad-fg)', fontFamily: "'Playfair Display', Georgia, serif" }}>
+                {m.short}
+              </span>
             </motion.button>
           )
         })}
       </div>
 
-      {/* Card area */}
-      <section className="mx-auto max-w-2xl px-4" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      {/* Card area — fills remaining height, scrolls inside */}
+      <section className="flex-1 overflow-y-auto overscroll-contain mx-auto w-full max-w-2xl px-4" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <AnimatePresence mode="wait">
 
           {/* ── Truth or Dare ── */}
