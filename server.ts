@@ -66,6 +66,18 @@ function toPublic(room: Room) {
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
+    const parsedUrl = parse(req.url!, true)
+    const pathname = parsedUrl.pathname ?? ''
+
+    // ── Health check — must bypass the password gate. Render pings this to
+    //    decide if the deploy is healthy; if it 401'd here the deploy would be
+    //    marked unhealthy and never go live. ──
+    if (pathname === '/healthz') {
+      res.writeHead(200, { 'Content-Type': 'text/plain' })
+      res.end('ok')
+      return
+    }
+
     // ── Fail closed if no password configured in production ──
     if (LOCKED_NO_PASSWORD) {
       res.writeHead(503, { 'Content-Type': 'text/plain' })
@@ -83,10 +95,7 @@ app.prepare().then(() => {
       return
     }
 
-    const parsedUrl = parse(req.url!, true)
-
     // ── After Dark is APK-only — never serve /couples on the hosted site ──
-    const pathname = parsedUrl.pathname ?? ''
     if (pathname === '/couples' || pathname.startsWith('/couples/')) {
       res.writeHead(404, { 'Content-Type': 'text/plain' })
       res.end('Not found')

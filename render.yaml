@@ -17,7 +17,9 @@ services:
     # they're required by `next build`.
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
-    healthCheckPath: /
+    # Must be an unauthenticated path — / now returns 401 (Basic Auth), which
+    # would make the health check fail and the deploy never go live.
+    healthCheckPath: /healthz
     envVars:
       # Render injects PORT and NODE_ENV=production automatically; no need to set them.
       - key: NODE_OPTIONS
