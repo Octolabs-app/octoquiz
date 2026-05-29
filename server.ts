@@ -13,6 +13,38 @@ import { createTruthDareGame, playerPicksTD, completeTurn, skipTurn } from './li
 const dev  = process.env.NODE_ENV !== 'production'
 const port = parseInt(process.env.PORT ?? '3000', 10)
 
+// ─── Access control ───────────────────────────────────────────────────────────
+// SITE_PASSWORD gates the entire deployment behind HTTP Basic Auth. Set it as an
+// env var on Render so the public URL is unusable without the password. If it is
+// unset (e.g. local dev) the gate is disabled. Username is ignored; only the
+// password is checked.
+const SITE_PASSWORD = process.env.SITE_PASSWORD ?? ''
+const AUTH_ENABLED  = SITE_PASSWORD.length > 0
+
+// Fail closed: in production the password is mandatory. If it's missing we serve
+// 503 for everything so the public URL is never usable by accident.
+const LOCKED_NO_PASSWORD = !dev && !AUTH_ENABLED
+
+function timingSafeEqual(a: string, b: string): boolean {
+  // Constant-time-ish compare to avoid leaking length/character timing.
+  if (a.length !== b.length) return false
+  let mismatch = 0
+  for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return mismatch === 0
+}
+
+function isAuthorized(authHeader: string | undefined): boolean {
+  if (!AUTH_ENABLED) return true
+  if (!authHeader?.startsWith('Basic ')) return false
+  try {
+    const decoded = Buffer.from(authHeader.slice(6), 'base64').toString('utf8')
+    const pass = decoded.slice(decoded.indexOf(':') + 1)
+    return timingSafeEqual(pass, SITE_PASSWORD)
+  } catch {
+    return false
+  }
+}
+
 const app    = next({ dev })
 const handle = app.getRequestHandler()
 
@@ -34,12 +66,43 @@ function toPublic(room: Room) {
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
+    // ── Fail closed if no password configured in production ──
+    if (LOCKED_NO_PASSWORD) {
+      res.writeHead(503, { 'Content-Type': 'text/plain' })
+      res.end('Site is not configured (SITE_PASSWORD env var is required).')
+      return
+    }
+
+    // ── Password gate (Basic Auth) ──
+    if (!isAuthorized(req.headers.authorization)) {
+      res.writeHead(401, {
+        'WWW-Authenticate': 'Basic realm="Yomu Game Night", charset="UTF-8"',
+        'Content-Type': 'text/plain',
+      })
+      res.end('Authentication required')
+      return
+    }
+
     const parsedUrl = parse(req.url!, true)
+
+    // ── After Dark is APK-only — never serve /couples on the hosted site ──
+    const pathname = parsedUrl.pathname ?? ''
+    if (pathname === '/couples' || pathname.startsWith('/couples/')) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' })
+      res.end('Not found')
+      return
+    }
+
     handle(req, res, parsedUrl)
   })
 
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: { origin: '*' },
+    // Gate the WebSocket/polling handshake behind the same password so the
+    // multiplayer backend can't be reached without it either.
+    allowRequest: (req, callback) => {
+      callback(null, !LOCKED_NO_PASSWORD && isAuthorized(req.headers.authorization))
+    },
   })
 
   // Auto-timers per room
@@ -465,6 +528,13 @@ app.prepare().then(() => {
   httpServer.listen(port, '0.0.0.0', () => {
     const ip = getLocalIP()
     console.log('\n🎮  Yomu Game Night')
+    if (LOCKED_NO_PASSWORD) {
+      console.log('   🔒 LOCKED — SITE_PASSWORD not set; serving 503 to everyone.')
+    } else if (AUTH_ENABLED) {
+      console.log('   🔐 Password gate: ON (HTTP Basic Auth)')
+    } else {
+      console.log('   🔓 Password gate: OFF (dev mode)')
+    }
     console.log(`   Local:   http://localhost:${port}`)
     console.log(`   Network: http://${ip}:${port}`)
     console.log(`\n   TV → open  http://${ip}:${port}`)

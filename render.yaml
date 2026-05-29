@@ -22,3 +22,9 @@ services:
       # Render injects PORT and NODE_ENV=production automatically; no need to set them.
       - key: NODE_OPTIONS
         value: --enable-source-maps
+      # Password gate (HTTP Basic Auth) for the whole site. sync:false means the
+      # value is NOT stored in this repo — set it in the Render dashboard under
+      # Environment. Any username works; only the password is checked. Leaving it
+      # unset disables the gate, so it MUST be set for the public deploy.
+      - key: SITE_PASSWORD
+        sync: false
