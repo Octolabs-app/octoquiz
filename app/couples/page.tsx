@@ -6,7 +6,7 @@ import {
   HOT, NHI, POSITIONS, QUIZ, TOD, WHEEL,
   type Intensity, type PositionCard,
 } from '@/data/after-dark'
-import { WYR_CARDS, RIDDLE_CARDS, SPIN_CONSEQUENCES } from '@/data/after-dark-extra'
+import { WYR_CARDS, RIDDLE_CARDS, SPIN_CONSEQUENCES, DARE_JAR_CARDS } from '@/data/after-dark-extra'
 import { useSound } from '@/hooks/useSound'
 
 // Detect whether we're running inside the Capacitor APK (vs. plain web).
@@ -28,7 +28,7 @@ const SIP_MILESTONES: { at: number; label: string; emoji: string }[] = [
   { at: 75, label: 'Hall of Fame',    emoji: '🏆' },
 ]
 
-type Mode = 'tod' | 'nhi' | 'quiz' | 'hot' | 'pos' | 'wheel' | 'wyr' | 'riddles' | 'spin'
+type Mode = 'tod' | 'nhi' | 'quiz' | 'hot' | 'pos' | 'wheel' | 'wyr' | 'riddles' | 'spin' | 'jar' | 'ttol'
 
 const MODES: { id: Mode; label: string; sub: string; tone: string; emoji: string }[] = [
   { id: 'tod',     label: 'Truth or Dare',    sub: 'Vérité ou défi',          tone: 'from-[var(--ad-primary)] to-[var(--ad-blush)]',  emoji: '🎲' },
@@ -40,6 +40,8 @@ const MODES: { id: Mode; label: string; sub: string; tone: string; emoji: string
   { id: 'nhi',     label: 'Never Have I…',    sub: 'Je n\'ai jamais',         tone: 'from-[var(--ad-violet)] to-[var(--ad-blush)]',   emoji: '🙈' },
   { id: 'quiz',    label: 'Couple Quiz',      sub: 'Qui connaît le mieux',    tone: 'from-[var(--ad-gold)] to-[var(--ad-ember)]',     emoji: '💬' },
   { id: 'hot',     label: 'Hot Seat',         sub: 'Siège brûlant',           tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🔥' },
+  { id: 'jar',     label: 'Dare Jar',         sub: 'Piocher un défi',         tone: 'from-[var(--ad-ember)] to-[var(--ad-primary)]',  emoji: '🫙' },
+  { id: 'ttol',    label: 'Two Truths',       sub: '& Un Mensonge',           tone: 'from-[var(--ad-gold)] to-[var(--ad-blush)]',    emoji: '🎭' },
 ]
 
 const LEVELS: { id: Intensity; label: string; emoji: string }[] = [
@@ -255,6 +257,17 @@ function GameView() {
   const [posTimerOn, setPosTimerOn] = useState(false)
   const [posMaxTimer, setPosMaxTimer] = useState(300)
 
+  // ── Dare Jar ──
+  const [jarCard, setJarCard] = useState<typeof DARE_JAR_CARDS[number] | null>(null)
+
+  // ── Two Truths & a Lie ──
+  const [ttolPhase,    setTtolPhase]    = useState<'idle'|'writing'|'guessing'|'reveal'>('idle')
+  const [ttolWriter,   setTtolWriter]   = useState<1|2>(1)
+  const [ttolGuess,    setTtolGuess]    = useState<1|2|3|null>(null)
+  const [ttolLieSlot,  setTtolLieSlot]  = useState<1|2|3|null>(null)
+  const [ttolTimer,    setTtolTimer]    = useState(60)
+  const [ttolTimerOn,  setTtolTimerOn]  = useState(false)
+
   // ── Riddle timer ──
   useEffect(() => {
     if (!riddleActive || riddleRevealed) return
@@ -273,6 +286,17 @@ function GameView() {
     if (posTimerOn && posTimer === 0) { setPosTimerOn(false); haptic(80); showToast('🏆 Position complete! Rate it below.') }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posTimer, posTimerOn])
+
+  // ── Two Truths writing timer ──
+  useEffect(() => {
+    if (!ttolTimerOn || ttolTimer <= 0) return
+    const id = setTimeout(() => setTtolTimer(t => t - 1), 1000)
+    return () => clearTimeout(id)
+  }, [ttolTimerOn, ttolTimer])
+  useEffect(() => {
+    if (ttolTimerOn && ttolTimer === 0) { setTtolTimerOn(false); setTtolPhase('guessing'); haptic(80); showToast('⏱ Time up! Start guessing.') }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ttolTimer, ttolTimerOn])
 
   // ── Helpers ──
   function showToast(msg: string) {
@@ -355,6 +379,13 @@ function GameView() {
         drawWYR()
       } else if (next.id === 'riddles') {
         drawRiddle()
+      } else if (next.id === 'jar') {
+        const pool = filteredNew(DARE_JAR_CARDS)
+        if (pool.length) {
+          setJarCard(pool[Math.floor(Math.random() * pool.length)])
+          setCardKey(k => k + 1)
+          burstSparks()
+        }
       }
     }, 280)
     showToast(`🎲 ${next.emoji} ${next.label}!`)
@@ -505,11 +536,13 @@ function GameView() {
     setRiddle(null); setRiddleRevealed(false); setRiddleActive(false)
     setSpinPhase('setup'); setSpinTarget(null); setSpinCard(null)
     setPosTimer(0); setPosTimerOn(false)
+    setJarCard(null)
+    setTtolPhase('idle'); setTtolWriter(1); setTtolGuess(null); setTtolLieSlot(null); setTtolTimer(60); setTtolTimerOn(false)
     showToast('🌹 Fresh start')
   }
 
   return (
-    <div className="after-dark relative min-h-screen overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="after-dark relative min-h-screen overflow-y-auto overflow-x-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <AmbientBackground />
 
       {!isNativeApp() && (
@@ -647,41 +680,40 @@ function GameView() {
         </div>
       </section>
 
-      {/* Mode tabs */}
-      <nav className="mx-auto mb-5 flex max-w-3xl gap-2 overflow-x-auto px-4 pb-2 ad-scrollbar-hide sm:flex-wrap sm:justify-center">
+      {/* Mode grid */}
+      <div className="mx-auto mb-6 grid max-w-2xl grid-cols-3 gap-3 px-4">
         {MODES.map((m, i) => {
           const active = mode === m.id
           return (
             <motion.button key={m.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-              whileTap={{ scale: 0.94 }}
+              initial={{ opacity: 0, scale: 0.85, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: i * 0.035, type: 'spring', bounce: 0.35 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => { haptic(); setMode(m.id) }}
-              className="group relative flex-shrink-0 overflow-hidden rounded-2xl px-3.5 py-3 text-left sm:px-4"
+              className="relative overflow-hidden rounded-2xl p-3 text-left"
               style={{
                 border: `1px solid ${active ? 'transparent' : 'var(--ad-border)'}`,
-                background: active ? undefined : 'color-mix(in oklab, var(--ad-surface) 40%, transparent)',
-                boxShadow: active ? 'var(--ad-shadow-heat)' : 'none',
+                background: active ? undefined : 'color-mix(in oklab, var(--ad-surface) 50%, transparent)',
+                boxShadow: active ? 'var(--ad-shadow-heat)' : '0 2px 8px rgba(0,0,0,0.3)',
+                minHeight: '80px',
               }}
             >
               {active && (
                 <motion.div layoutId="active-tab-bg"
                   className={`absolute inset-0 -z-0 bg-gradient-to-br ${m.tone}`}
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
                 />
               )}
-              <div className="relative flex items-center gap-1.5">
-                <span className="text-base">{m.emoji}</span>
-                <div>
-                  <div className="text-xs font-bold sm:text-sm" style={{ color: active ? '#fff' : 'var(--ad-fg)', fontFamily: "'Playfair Display', Georgia, serif" }}>{m.label}</div>
-                  <div className="text-[8px] uppercase tracking-[0.18em] sm:text-[9px]" style={{ color: active ? 'rgba(255,255,255,0.7)' : 'var(--ad-muted)' }}>{m.sub}</div>
-                </div>
+              <div className="relative z-10 flex flex-col gap-1">
+                <span className="text-2xl">{m.emoji}</span>
+                <div className="text-[11px] font-bold leading-tight" style={{ color: active ? '#fff' : 'var(--ad-fg)', fontFamily: "'Playfair Display', Georgia, serif" }}>{m.label}</div>
+                <div className="text-[8px] uppercase tracking-[0.15em] opacity-70" style={{ color: active ? 'rgba(255,255,255,0.8)' : 'var(--ad-muted)' }}>{m.sub}</div>
               </div>
             </motion.button>
           )
         })}
-      </nav>
+      </div>
 
       {/* Card area */}
       <section className="mx-auto max-w-2xl px-4" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
@@ -795,6 +827,164 @@ function GameView() {
                 <PrimaryBtn onClick={() => draw('hot')}>🔥 Hot card</PrimaryBtn>
                 <GhostBtn onClick={() => { addSip(turn === 1 ? 2 : 1, 3); showToast('🤐 Pass — 3 sips!') }}>🤐 Pass (3 🥃)</GhostBtn>
               </BtnRow>
+            </ModeFrame>
+          )}
+
+          {/* ── Dare Jar ── */}
+          {mode === 'jar' && (
+            <ModeFrame key="jar">
+              <p className="mb-3 text-[10px] uppercase tracking-[0.2em]" style={{ color: 'var(--ad-muted)' }}>
+                Accept the dare or take {intensity === 'inferno' ? '4' : '2'} sips 🥃
+              </p>
+              <ADCard sparks={sparks} cardKey={`jar-${cardKey}`}>
+                {!jarCard ? (
+                  <Placeholder pill="🫙 Dare Jar" fr="Pioche un défi physique" en="Draw a physical dare" />
+                ) : (
+                  <>
+                    <Pill tone="ember" label={`Dare · ${jarCard.icon ?? '🎲'}`} level={jarCard.intensity} />
+                    <div className="flex flex-col items-center gap-4">
+                      {jarCard.icon && <span className="text-5xl">{jarCard.icon}</span>}
+                      <CardText fr={jarCard.dare_fr ?? jarCard.dare} en={jarCard.dare} />
+                    </div>
+                  </>
+                )}
+              </ADCard>
+              <BtnRow>
+                <PrimaryBtn
+                  onClick={() => {
+                    haptic(15); playSfx('draw'); setCombo(c => c + 1)
+                    const pool = filteredNew(DARE_JAR_CARDS)
+                    if (!pool.length) { showToast('No dares at this level'); return }
+                    const idx = Math.floor(Math.random() * pool.length)
+                    setJarCard(pool[idx])
+                    setCardKey(k => k + 1); burstSparks()
+                  }}
+                >
+                  {jarCard ? '🫙 Next dare' : '🫙 Shake the jar'}
+                </PrimaryBtn>
+                {jarCard && <GhostBtn onClick={() => addSip(0, intensity === 'inferno' ? 4 : 2)}>Skip (+{intensity === 'inferno' ? 4 : 2} 🥃)</GhostBtn>}
+              </BtnRow>
+            </ModeFrame>
+          )}
+
+          {/* ── Two Truths & a Lie ── */}
+          {mode === 'ttol' && (
+            <ModeFrame key="ttol">
+              {ttolPhase === 'idle' && (
+                <>
+                  <div className="mb-4 rounded-2xl p-4 text-center" style={{ background: 'oklch(0.78 0.13 80 / 0.08)', border: '1px solid oklch(0.78 0.13 80 / 0.15)' }}>
+                    <p className="text-lg font-bold mb-1" style={{ color: 'var(--ad-gold)', fontFamily: "'Playfair Display', serif" }}>How to play</p>
+                    <p className="text-sm" style={{ color: 'var(--ad-muted)' }}>
+                      {p1Name} thinks of <strong style={{ color: 'var(--ad-fg)' }}>2 truths</strong> and <strong style={{ color: 'var(--ad-primary)' }}>1 lie</strong>. <br/>
+                      {p2Name} guesses the lie. Wrong guess = drink!
+                    </p>
+                  </div>
+                  <BtnRow>
+                    <PrimaryBtn color="var(--ad-gold)" onClick={() => { haptic(15); setTtolPhase('writing'); setTtolWriter(1); setTtolTimer(60); setTtolTimerOn(true) }}>
+                      🎭 {p1Name} goes first
+                    </PrimaryBtn>
+                    <GhostBtn onClick={() => { haptic(15); setTtolPhase('writing'); setTtolWriter(2); setTtolTimer(60); setTtolTimerOn(true) }}>
+                      {p2Name} goes first
+                    </GhostBtn>
+                  </BtnRow>
+                </>
+              )}
+              {ttolPhase === 'writing' && (
+                <motion.div key="writing" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <span className="text-3xl">✍️</span>
+                    <p className="text-base font-bold mt-2" style={{ color: 'var(--ad-fg)' }}>
+                      {ttolWriter === 1 ? p1Name : p2Name}, think of your 3 statements
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--ad-muted)' }}>2 truths + 1 lie. Don&apos;t tell which is which!</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <motion.div
+                      key={ttolTimer}
+                      initial={{ scale: 1.2 }}
+                      animate={{ scale: 1 }}
+                      className="text-4xl font-black tabular-nums"
+                      style={{ color: ttolTimer <= 15 ? 'var(--ad-primary)' : 'var(--ad-gold)', fontFamily: "'Playfair Display', serif" }}
+                    >
+                      {ttolTimer}
+                    </motion.div>
+                    <span className="text-sm" style={{ color: 'var(--ad-muted)' }}>seconds</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: 'var(--ad-surface-2)' }}>
+                    <motion.div className="h-full rounded-full" animate={{ width: `${(ttolTimer / 60) * 100}%` }} transition={{ duration: 0.8 }}
+                      style={{ background: ttolTimer > 20 ? 'var(--ad-gold)' : 'var(--ad-primary)' }} />
+                  </div>
+                  <BtnRow>
+                    <PrimaryBtn color="var(--ad-gold)" onClick={() => { setTtolTimerOn(false); setTtolPhase('guessing') }}>Ready — {ttolWriter === 1 ? p2Name : p1Name} guesses →</PrimaryBtn>
+                  </BtnRow>
+                </motion.div>
+              )}
+              {ttolPhase === 'guessing' && (
+                <motion.div key="guessing" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <span className="text-3xl">🕵️</span>
+                    <p className="text-base font-bold mt-2" style={{ color: 'var(--ad-fg)' }}>
+                      {ttolWriter === 1 ? p2Name : p1Name}, which one is the lie?
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--ad-muted)' }}>{ttolWriter === 1 ? p1Name : p2Name} is reading their 3 statements aloud</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([1,2,3] as const).map(slot => (
+                      <motion.button key={slot} whileTap={{ scale: 0.9 }}
+                        onClick={() => { haptic(15); setTtolGuess(slot); setTtolPhase('reveal') }}
+                        className="rounded-2xl py-5 text-xl font-black"
+                        style={{ background: 'color-mix(in oklab, var(--ad-surface) 60%, transparent)', border: '1px solid var(--ad-border)', color: 'var(--ad-fg)' }}>
+                        {slot}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+              {ttolPhase === 'reveal' && (
+                <motion.div key="reveal" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col gap-4">
+                  <div className="text-center">
+                    <span className="text-3xl">🎭</span>
+                    <p className="text-base font-bold mt-2" style={{ color: 'var(--ad-fg)' }}>
+                      {ttolWriter === 1 ? p1Name : p2Name} — reveal the lie!
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([1,2,3] as const).map(slot => (
+                      <motion.button key={slot} whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          setTtolLieSlot(slot)
+                          haptic([20,40,20])
+                          playSfx('reveal')
+                          burstSparks()
+                          if (slot === ttolGuess) {
+                            showToast(`🏆 ${ttolWriter === 1 ? p2Name : p1Name} got it right! ${ttolWriter === 1 ? p1Name : p2Name} drinks 2 🥃`)
+                            addSip(ttolWriter, 2)
+                          } else {
+                            showToast(`😈 Wrong! ${ttolWriter === 1 ? p2Name : p1Name} drinks 2 🥃`)
+                            addSip(ttolWriter === 1 ? 2 : 1, 2)
+                          }
+                        }}
+                        className="rounded-2xl py-5 text-xl font-black transition-all"
+                        style={{
+                          background: ttolLieSlot === slot ? 'linear-gradient(135deg, var(--ad-primary), var(--ad-blush))' : ttolLieSlot !== null && slot === ttolGuess ? 'oklch(0.78 0.13 80 / 0.2)' : 'color-mix(in oklab, var(--ad-surface) 60%, transparent)',
+                          border: `1px solid ${ttolLieSlot === slot ? 'transparent' : 'var(--ad-border)'}`,
+                          color: ttolLieSlot === slot ? '#fff' : 'var(--ad-fg)',
+                        }}>
+                        {ttolLieSlot === slot ? '🤥 LIE' : ttolGuess === slot && ttolLieSlot !== null ? '✅' : slot}
+                      </motion.button>
+                    ))}
+                  </div>
+                  {ttolLieSlot !== null && (
+                    <BtnRow>
+                      <PrimaryBtn color="var(--ad-blush)" onClick={() => {
+                        const nextWriter = (ttolWriter === 1 ? 2 : 1) as 1|2
+                        setTtolPhase('writing'); setTtolWriter(nextWriter); setTtolGuess(null); setTtolLieSlot(null); setTtolTimer(60); setTtolTimerOn(true)
+                      }}>🔄 Switch — {ttolWriter === 1 ? p2Name : p1Name} goes next</PrimaryBtn>
+                      <GhostBtn onClick={() => { setTtolPhase('idle'); setTtolGuess(null); setTtolLieSlot(null) }}>End round</GhostBtn>
+                    </BtnRow>
+                  )}
+                </motion.div>
+              )}
             </ModeFrame>
           )}
 

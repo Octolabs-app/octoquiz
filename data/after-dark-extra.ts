@@ -134,3 +134,36 @@ export const SPIN_CONSEQUENCES: SpinConsequence[] = [
   { id: 19, intensity: 'inferno', text: 'Role-play a scene of their choice for 2 minutes', text_fr: 'Jouer un scénario de leur choix pendant 2 minutes', duration: '2 min' },
   { id: 20, intensity: 'inferno', text: 'Give them a steamy 2-minute massage anywhere they want', text_fr: 'Leur donner un massage chaud de 2 min où ils veulent', duration: '2 min' },
 ]
+
+// ─── Dare Jar ───────────────────────────────
+export interface DareJarCard {
+  id: number
+  intensity: Intensity
+  dare: string
+  dare_fr?: string
+  icon?: string
+}
+
+export const DARE_JAR_CARDS: DareJarCard[] = [
+  // MILD (fun, playful)
+  { id: 1, intensity: 'mild', icon: '💆', dare: 'Give your partner a 30-second shoulder massage with your eyes closed', dare_fr: 'Masse les épaules de ton partenaire 30 secondes les yeux fermés' },
+  { id: 2, intensity: 'mild', icon: '📸', dare: 'Take the most flattering selfie of your partner without them knowing', dare_fr: 'Prends le meilleur selfie de ton partenaire à son insu' },
+  { id: 3, intensity: 'mild', icon: '🎵', dare: 'Sing the chorus of your partner\'s favorite song to them right now', dare_fr: 'Chante le refrain du chanson préféré de ton partenaire maintenant' },
+  { id: 4, intensity: 'mild', icon: '✍️', dare: 'Write your partner\'s name with your finger on their back — they have to guess what you wrote', dare_fr: 'Écris le prénom de ton partenaire sur son dos avec le doigt' },
+  { id: 5, intensity: 'mild', icon: '💃', dare: 'Dance together for the next song that plays, no matter what it is', dare_fr: 'Dansez ensemble pour la prochaine chanson, peu importe laquelle' },
+  { id: 6, intensity: 'mild', icon: '🍓', dare: 'Feed each other a piece of food without using hands', dare_fr: 'Nourrissez-vous mutuellement sans les mains' },
+  { id: 7, intensity: 'mild', icon: '👀', dare: 'Stare into each other\'s eyes for 60 seconds without laughing or looking away', dare_fr: 'Regardez-vous dans les yeux pendant 60 secondes sans rire' },
+  { id: 8, intensity: 'mild', icon: '🤗', dare: 'Hold a hug for 30 seconds without saying anything', dare_fr: 'Restez enlacés pendant 30 secondes sans parler' },
+  // SPICY
+  { id: 9, intensity: 'spicy', icon: '💋', dare: 'Kiss your partner\'s neck for 10 seconds', dare_fr: 'Embrasse le cou de ton partenaire pendant 10 secondes' },
+  { id: 10, intensity: 'spicy', icon: '🙈', dare: 'Blindfold your partner with a scarf and surprise them with 3 different touches', dare_fr: 'Bandez les yeux de ton partenaire et surprends-le avec 3 touches différentes' },
+  { id: 11, intensity: 'spicy', icon: '🎭', dare: 'Remove one item of clothing from your partner using only your teeth', dare_fr: 'Retire un vêtement de ton partenaire avec les dents seulement' },
+  { id: 12, intensity: 'spicy', icon: '🍫', dare: 'Drip something cold on your partner\'s wrist and lick it off', dare_fr: 'Verse quelque chose de froid sur le poignet et lèche-le' },
+  { id: 13, intensity: 'spicy', icon: '🌹', dare: 'Give your partner a 3-minute back massage — they rate it out of 10 after', dare_fr: 'Masse le dos 3 minutes — il/elle note sur 10 après' },
+  { id: 14, intensity: 'spicy', icon: '🔥', dare: 'Whisper exactly what you want to do to your partner tonight', dare_fr: 'Murmure exactement ce que tu veux faire ce soir' },
+  // INFERNO
+  { id: 15, intensity: 'inferno', icon: '🌋', dare: 'Take an ice cube and trace it slowly from your partner\'s shoulder to their hip', dare_fr: 'Prends un glaçon et trace-le lentement de l\'épaule à la hanche' },
+  { id: 16, intensity: 'inferno', icon: '😈', dare: 'Re-enact your hottest memory together — right now', dare_fr: 'Rejouez votre souvenir le plus torride — maintenant' },
+  { id: 17, intensity: 'inferno', icon: '🎲', dare: 'Your partner picks a spot — you kiss it for 20 seconds', dare_fr: 'Ton partenaire choisit un endroit — tu l\'embrasses pendant 20 secondes' },
+  { id: 18, intensity: 'inferno', icon: '🕯️', dare: 'Do a sensual slow dance together with the lights off for the next full song', dare_fr: 'Dansez sensuellement dans le noir pendant la prochaine chanson' },
+]
