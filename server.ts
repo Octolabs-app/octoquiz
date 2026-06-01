@@ -9,7 +9,8 @@ import { createTriviaGame, startQuestion, submitTriviaAnswer, calculateTriviaPoi
 import type { TriviaConfig } from './lib/types'
 import { createFlagQuizGame, startFlagQuestion, submitFlagAnswer, calculateFlagPoints, advanceFlagQuestion, revealFlagAnswer, showFlagLeaderboard } from './lib/games/flag-quiz'
 import { createImposterGame, startDiscussion, startVoting, submitVote, resolveVotes, nextImposterRound } from './lib/games/imposter'
-import { createTruthDareGame, playerPicksTD, completeTurn, skipTurn } from './lib/games/truth-or-dare'
+import { createCapitalsGame, startCapitalsQuestion, submitCapitalsAnswer, calculateCapitalsPoints, advanceCapitalsQuestion, revealCapitalsAnswer, showCapitalsLeaderboard } from './lib/games/capitals'
+import { createLandmarksGame, startLandmarksQuestion, submitLandmarksAnswer, calculateLandmarksPoints, advanceLandmarksQuestion, revealLandmarksAnswer, showLandmarksLeaderboard } from './lib/games/landmarks'
 
 const dev  = process.env.NODE_ENV !== 'production'
 const port = parseInt(process.env.PORT ?? '3000', 10)
@@ -89,7 +90,7 @@ app.prepare().then(() => {
     // ── Password gate (Basic Auth) ──
     if (!isAuthorized(req.headers.authorization)) {
       res.writeHead(401, {
-        'WWW-Authenticate': 'Basic realm="Yomu Game Night", charset="UTF-8"',
+        'WWW-Authenticate': 'Basic realm="QuizBlast", charset="UTF-8"',
         'Content-Type': 'text/plain',
       })
       res.end('Authentication required')
@@ -254,6 +255,74 @@ app.prepare().then(() => {
     setTimer(code, 2000, () => flagStartQuestion(code))
   }
 
+  // ─── Capitals flow ──────────────────────────────────────────────────────────
+  function capitalsStartQuestion(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'capitals') return
+    const state = startCapitalsQuestion(room.gameState)
+    rm.setGameState(code, state); broadcastGame(code)
+    setTimer(code, state.timeLimit * 1000, () => capitalsReveal(code))
+  }
+  function capitalsReveal(code: string) {
+    clearTimer(code)
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'capitals') return
+    const pts = calculateCapitalsPoints(room.gameState, room.players.map(p => p.id))
+    rm.addPoints(code, pts)
+    rm.setGameState(code, revealCapitalsAnswer(room.gameState))
+    broadcast(code); broadcastGame(code)
+    setTimer(code, 3500, () => capitalsLeaderboard(code))
+  }
+  function capitalsLeaderboard(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'capitals') return
+    rm.setGameState(code, showCapitalsLeaderboard(room.gameState))
+    broadcastGame(code); broadcast(code)
+    setTimer(code, 4000, () => capitalsNext(code))
+  }
+  function capitalsNext(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'capitals') return
+    const next = advanceCapitalsQuestion(room.gameState)
+    rm.setGameState(code, next); broadcastGame(code)
+    if (next.phase === 'finished') { rm.setRoomStatus(code, 'results'); broadcast(code); return }
+    setTimer(code, 2000, () => capitalsStartQuestion(code))
+  }
+
+  // ─── Landmarks flow ─────────────────────────────────────────────────────────
+  function landmarksStartQuestion(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'landmarks') return
+    const state = startLandmarksQuestion(room.gameState)
+    rm.setGameState(code, state); broadcastGame(code)
+    setTimer(code, state.timeLimit * 1000, () => landmarksReveal(code))
+  }
+  function landmarksReveal(code: string) {
+    clearTimer(code)
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'landmarks') return
+    const pts = calculateLandmarksPoints(room.gameState, room.players.map(p => p.id))
+    rm.addPoints(code, pts)
+    rm.setGameState(code, revealLandmarksAnswer(room.gameState))
+    broadcast(code); broadcastGame(code)
+    setTimer(code, 3500, () => landmarksLeaderboard(code))
+  }
+  function landmarksLeaderboard(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'landmarks') return
+    rm.setGameState(code, showLandmarksLeaderboard(room.gameState))
+    broadcastGame(code); broadcast(code)
+    setTimer(code, 4000, () => landmarksNext(code))
+  }
+  function landmarksNext(code: string) {
+    const room = rm.getRoom(code)
+    if (!room?.gameState || room.gameState.game !== 'landmarks') return
+    const next = advanceLandmarksQuestion(room.gameState)
+    rm.setGameState(code, next); broadcastGame(code)
+    if (next.phase === 'finished') { rm.setRoomStatus(code, 'results'); broadcast(code); return }
+    setTimer(code, 2000, () => landmarksStartQuestion(code))
+  }
+
   // ─── Imposter flow ──────────────────────────────────────────────────────────
   function imposterStartDiscussion(code: string) {
     const room = rm.getRoom(code)
@@ -416,11 +485,20 @@ app.prepare().then(() => {
           setTimer(room.code, 5000, () => imposterStartDiscussion(room.code))
           break
         }
-        case 'truth-or-dare': {
-          const state = createTruthDareGame(playerIds, 'safe')
+        case 'capitals': {
+          const state = await createCapitalsGame(12)
           rm.setGameState(room.code, state)
           broadcast(room.code)
           broadcastGame(room.code)
+          setTimer(room.code, 2000, () => capitalsStartQuestion(room.code))
+          break
+        }
+        case 'landmarks': {
+          const state = await createLandmarksGame(12)
+          rm.setGameState(room.code, state)
+          broadcast(room.code)
+          broadcastGame(room.code)
+          setTimer(room.code, 2000, () => landmarksStartQuestion(room.code))
           break
         }
       }
@@ -473,28 +551,18 @@ app.prepare().then(() => {
           }
           break
         }
-        case 'td_pick': {
-          if (room.gameState.game !== 'truth-or-dare') return
-          const state = playerPicksTD(room.gameState, socket.id, action.choice)
-          rm.setGameState(room.code, state)
-          broadcastGame(room.code)
-          broadcast(room.code)
+        case 'capitals_answer': {
+          if (room.gameState.game !== 'capitals') return
+          const state = submitCapitalsAnswer(room.gameState, socket.id, action.answer)
+          rm.setGameState(room.code, state); broadcastGame(room.code)
+          if (Object.keys(state.answers).length >= room.players.length) { clearTimer(room.code); capitalsReveal(room.code) }
           break
         }
-        case 'td_done': {
-          if (room.gameState.game !== 'truth-or-dare') return
-          const state = completeTurn(room.gameState)
-          rm.setGameState(room.code, state)
-          broadcastGame(room.code)
-          broadcast(room.code)
-          break
-        }
-        case 'td_skip': {
-          if (room.gameState.game !== 'truth-or-dare') return
-          const state = skipTurn(room.gameState, socket.id)
-          rm.setGameState(room.code, state)
-          broadcastGame(room.code)
-          broadcast(room.code)
+        case 'landmarks_answer': {
+          if (room.gameState.game !== 'landmarks') return
+          const state = submitLandmarksAnswer(room.gameState, socket.id, action.answer)
+          rm.setGameState(room.code, state); broadcastGame(room.code)
+          if (Object.keys(state.answers).length >= room.players.length) { clearTimer(room.code); landmarksReveal(room.code) }
           break
         }
       }
@@ -555,7 +623,7 @@ app.prepare().then(() => {
 
   httpServer.listen(port, '0.0.0.0', () => {
     const ip = getLocalIP()
-    console.log('\n🎮  Yomu Game Night')
+    console.log('\n🎮  QuizBlast')
     if (LOCKED_NO_PASSWORD) {
       console.log('   🔒 LOCKED — SITE_PASSWORD not set; serving 503 to everyone.')
     } else if (AUTH_ENABLED) {

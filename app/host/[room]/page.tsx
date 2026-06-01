@@ -8,7 +8,8 @@ import GameSelect from '@/components/host/GameSelect'
 import TriviaHost from '@/components/host/games/TriviaHost'
 import FlagQuizHost from '@/components/host/games/FlagQuizHost'
 import ImposterHost from '@/components/host/games/ImposterHost'
-import TruthDareHost from '@/components/host/games/TruthDareHost'
+import CapitalsHost from '@/components/host/games/CapitalsHost'
+import LandmarksHost from '@/components/host/games/LandmarksHost'
 import ResultsScreen from '@/components/host/ResultsScreen'
 import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
@@ -61,10 +62,11 @@ export default function HostPage() {
 
   if (room.status === 'playing' && gameState) {
     switch (gameState.game) {
-      case 'trivia':      return <TriviaHost room={room} state={gameState} />
-      case 'flag-quiz':   return <FlagQuizHost room={room} state={gameState} />
-      case 'imposter':    return <ImposterHost room={room} state={gameState} socket={socket!} />
-      case 'truth-or-dare': return <TruthDareHost room={room} state={gameState} />
+      case 'trivia':    return <TriviaHost room={room} state={gameState} />
+      case 'flag-quiz': return <FlagQuizHost room={room} state={gameState} />
+      case 'imposter':  return <ImposterHost room={room} state={gameState} socket={socket!} />
+      case 'capitals':  return <CapitalsHost room={room} state={gameState} />
+      case 'landmarks': return <LandmarksHost room={room} state={gameState} />
     }
   }
 

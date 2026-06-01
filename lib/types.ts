@@ -19,13 +19,13 @@ export interface Player {
 
 // ─── Room ────────────────────────────────────────────────────────────────────
 
-export type GameType = 'trivia' | 'flag-quiz' | 'imposter' | 'truth-or-dare'
+export type GameType = 'trivia' | 'flag-quiz' | 'imposter' | 'capitals' | 'landmarks'
 export type RoomStatus = 'lobby' | 'game-select' | 'playing' | 'results'
 
 export interface Room {
   code: string
-  hostId: string            // TV screen socket ID
-  gameMasterId: string | null  // first player who can control game flow
+  hostId: string
+  gameMasterId: string | null
   players: Player[]
   status: RoomStatus
   currentGame: GameType | null
@@ -39,9 +39,10 @@ export type GameState =
   | TriviaState
   | FlagQuizState
   | ImposterState
-  | TruthDareState
+  | CapitalsState
+  | LandmarksState
 
-// TRIVIA / BRAIN BLITZ
+// ─── TRIVIA / BRAIN BLITZ ─────────────────────────────────────────────────────
 export type TriviaMode       = 'classic' | 'speed' | 'sudden-death'
 export type TriviaDifficulty = 'easy' | 'medium' | 'hard'
 
@@ -72,14 +73,13 @@ export interface TriviaState {
   timeLimit: number
   startedAt: number | null
   category: string
-  // Brain Blitz extensions
   mode:       TriviaMode
   difficulty: TriviaDifficulty
-  eliminated: string[]                    // player IDs out (sudden-death)
-  streaks:    Record<string, number>      // consecutive correct per player
+  eliminated: string[]
+  streaks:    Record<string, number>
 }
 
-// FLAG QUIZ
+// ─── FLAG QUIZ ────────────────────────────────────────────────────────────────
 export interface FlagQuizQuestion {
   countryCode: string
   countryName: string
@@ -99,7 +99,7 @@ export interface FlagQuizState {
   startedAt: number | null
 }
 
-// IMPOSTER
+// ─── IMPOSTER ─────────────────────────────────────────────────────────────────
 export type ImposterPhase = 'reveal' | 'discussion' | 'voting' | 'result' | 'finished'
 
 export interface ImposterState {
@@ -112,7 +112,7 @@ export interface ImposterState {
   imposterWord: string
   discussionSeconds: number
   discussionStartedAt: number | null
-  votes: Record<string, string>     // voterId → targetId
+  votes: Record<string, string>
   roundResults: ImposterRoundResult[]
 }
 
@@ -126,31 +126,64 @@ export interface ImposterRoundResult {
   votes: Record<string, string>
 }
 
-// TRUTH OR DARE
-export type TruthDareMode = 'safe' | 'adult'
-export type TruthDarePhase = 'pick' | 'prompt' | 'done' | 'finished'
+// ─── CAPITAL CITIES ───────────────────────────────────────────────────────────
+export interface CapitalsQuestion {
+  id:           string
+  city:         string
+  country:      string
+  imageUrl:     string      // Wikipedia CDN thumbnail
+  options:      string[]    // 4 country names
+  correctIndex: number
+}
 
-export interface TruthDareState {
-  game: 'truth-or-dare'
-  phase: TruthDarePhase
-  mode: TruthDareMode
-  currentPlayerId: string
-  currentPrompt: string | null
-  currentChoice: 'truth' | 'dare' | null
-  turnIndex: number
-  playerOrder: string[]
-  skipsUsed: Record<string, number>
+export type CapitalsPhase = 'countdown' | 'question' | 'reveal' | 'leaderboard' | 'finished'
+
+export interface CapitalsState {
+  game:         'capitals'
+  phase:        CapitalsPhase
+  questions:    CapitalsQuestion[]
+  currentIndex: number
+  answers:      Record<string, { answer: string; timeMs: number; correct: boolean }>
+  timeLimit:    number
+  startedAt:    number | null
+}
+
+// ─── LANDMARKS ────────────────────────────────────────────────────────────────
+export type LandmarkQType = 'name' | 'country'
+
+export interface LandmarksQuestion {
+  id:             string
+  name:           string      // landmark name
+  country:        string
+  city:           string      // city/region where it's located
+  imageUrl:       string      // Wikipedia CDN thumbnail
+  questionType:   LandmarkQType
+  questionText:   string      // "What is this landmark?" / "Which country?"
+  options:        string[]    // 4 answers
+  correctIndex:   number
+}
+
+export type LandmarksPhase = 'countdown' | 'question' | 'reveal' | 'leaderboard' | 'finished'
+
+export interface LandmarksState {
+  game:         'landmarks'
+  phase:        LandmarksPhase
+  questions:    LandmarksQuestion[]
+  currentIndex: number
+  answers:      Record<string, { answer: string; timeMs: number; correct: boolean }>
+  timeLimit:    number
+  startedAt:    number | null
 }
 
 // ─── Socket Events ────────────────────────────────────────────────────────────
 
 export interface ServerToClientEvents {
-  room_state:       (room: RoomPublic) => void
-  error:            (msg: string) => void
-  player_joined:    (player: Player) => void
-  player_left:      (playerId: string, name: string) => void
-  game_state:       (state: GameState) => void
-  kicked:           () => void
+  room_state:    (room: RoomPublic) => void
+  error:         (msg: string) => void
+  player_joined: (player: Player) => void
+  player_left:   (playerId: string, name: string) => void
+  game_state:    (state: GameState) => void
+  kicked:        () => void
 }
 
 export interface ClientToServerEvents {
@@ -169,9 +202,8 @@ export type GameAction =
   | { type: 'trivia_answer';    answerId: number }
   | { type: 'flag_answer';      answer: string }
   | { type: 'imposter_vote';    targetId: string }
-  | { type: 'td_pick';          choice: 'truth' | 'dare' }
-  | { type: 'td_done' }
-  | { type: 'td_skip' }
+  | { type: 'capitals_answer';  answer: string }
+  | { type: 'landmarks_answer'; answer: string }
 
 // Public room state (safe to send to all clients)
 export type RoomPublic = Omit<Room, 'hostId'>

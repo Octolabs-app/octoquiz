@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Yomu Game Night',
+  title: 'QuizBlast',
   description: 'Local party game night for 8+ players — Trivia, Flag Quiz, Imposter & more',
 }
 

@@ -7,7 +7,8 @@ import PlayerLobby from '@/components/player/PlayerLobby'
 import TriviaPlayer from '@/components/player/games/TriviaPlayer'
 import FlagQuizPlayer from '@/components/player/games/FlagQuizPlayer'
 import ImposterPlayer from '@/components/player/games/ImposterPlayer'
-import TruthDarePlayer from '@/components/player/games/TruthDarePlayer'
+import CapitalsPlayer from '@/components/player/games/CapitalsPlayer'
+import LandmarksPlayer from '@/components/player/games/LandmarksPlayer'
 import PlayerResults from '@/components/player/PlayerResults'
 import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
@@ -108,10 +109,11 @@ export default function PlayerPage() {
 
   if (room?.status === 'playing' && gameState && me) {
     switch (gameState.game) {
-      case 'trivia':        return <TriviaPlayer state={gameState} me={me} socket={socket!} />
-      case 'flag-quiz':     return <FlagQuizPlayer state={gameState} me={me} socket={socket!} />
-      case 'imposter':      return <ImposterPlayer state={gameState} me={me} room={room} socket={socket!} />
-      case 'truth-or-dare': return <TruthDarePlayer state={gameState} me={me} socket={socket!} />
+      case 'trivia':    return <TriviaPlayer state={gameState} me={me} socket={socket!} />
+      case 'flag-quiz': return <FlagQuizPlayer state={gameState} me={me} socket={socket!} />
+      case 'imposter':  return <ImposterPlayer state={gameState} me={me} room={room} socket={socket!} />
+      case 'capitals':  return <CapitalsPlayer state={gameState} me={me} socket={socket!} />
+      case 'landmarks': return <LandmarksPlayer state={gameState} me={me} socket={socket!} />
     }
   }
 

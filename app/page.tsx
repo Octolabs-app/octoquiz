@@ -21,9 +21,10 @@ function ConnectingLabel() {
 
 const GAMES = [
   { icon: '🧠', label: 'Brain Blitz', color: '#3b82f6' },
-  { icon: '🏳️', label: 'Flags',    color: '#22c55e' },
-  { icon: '🕵️', label: 'Imposter', color: '#a855f7' },
-  { icon: '🎲', label: 'T or D',   color: '#f97316' },
+  { icon: '🏳️', label: 'Flags',       color: '#22c55e' },
+  { icon: '🏙️', label: 'Capitals',    color: '#f59e0b' },
+  { icon: '🏛️', label: 'Landmarks',   color: '#ec4899' },
+  { icon: '🕵️', label: 'Imposter',    color: '#a855f7' },
 ]
 
 export default function HomePage() {
@@ -139,12 +140,12 @@ export default function HomePage() {
             <motion.h1
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
               className="text-5xl font-black mb-1 bg-gradient-to-r from-purple-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
-              Game Night
+              QuizBlast
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
               className="text-white/40 mb-10 text-sm uppercase tracking-[0.3em]">
-              by Yomu Studio
+              by Yomu
             </motion.p>
 
             {/* Action buttons */}
