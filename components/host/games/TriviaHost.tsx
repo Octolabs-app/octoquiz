@@ -5,7 +5,7 @@ import type { RoomPublic, TriviaState } from '@/lib/types'
 import Timer from '@/components/ui/Timer'
 import Scoreboard from '@/components/ui/Scoreboard'
 import { useSound } from '@/hooks/useSound'
-import { TRIVIA_CATEGORIES } from '@/lib/games/trivia'
+import { TRIVIA_CATEGORIES } from '@/lib/trivia-config'
 
 interface Props { room: RoomPublic; state: TriviaState }
 

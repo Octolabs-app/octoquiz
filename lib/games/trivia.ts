@@ -1,5 +1,6 @@
 import { getLocalQuestions } from '@/data/trivia-local'
 import type { TriviaState, TriviaQuestion, TriviaConfig, TriviaMode, TriviaDifficulty } from '@/lib/types'
+export { TRIVIA_CATEGORIES } from '@/lib/trivia-config'
 
 // ─── Config defaults ──────────────────────────────────────────────────────────
 const DEFAULT_CONFIG: TriviaConfig = {
@@ -336,17 +337,4 @@ export function advanceTriviaQuestion(state: TriviaState): TriviaState {
   }
 }
 
-// ─── Category definitions (shared with UI) ────────────────────────────────────
-export const TRIVIA_CATEGORIES: { id: string; icon: string; color: string }[] = [
-  { id: 'Mixed',               icon: '🎲', color: '#a855f7' },
-  { id: 'General Knowledge',   icon: '🧠', color: '#3b82f6' },
-  { id: 'Geography & Capitals',icon: '🌍', color: '#22c55e' },
-  { id: 'World Landmarks',     icon: '🏛️', color: '#f59e0b' },
-  { id: 'Science & Nature',    icon: '🧬', color: '#06b6d4' },
-  { id: 'History',             icon: '📜', color: '#ef4444' },
-  { id: 'Movies & TV',         icon: '🎬', color: '#f97316' },
-  { id: 'Music',               icon: '🎵', color: '#ec4899' },
-  { id: 'Sports',              icon: '⚽', color: '#84cc16' },
-  { id: 'Pop Culture',         icon: '🎭', color: '#8b5cf6' },
-  { id: 'Food & Cuisine',      icon: '🍕', color: '#fb923c' },
-]
+// TRIVIA_CATEGORIES is now in lib/trivia-config.ts and re-exported above

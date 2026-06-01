@@ -5,7 +5,7 @@ import type { RoomPublic, GameType, TriviaConfig, TriviaMode, TriviaDifficulty }
 import type { Socket } from 'socket.io-client'
 import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import Scoreboard from '@/components/ui/Scoreboard'
-import { TRIVIA_CATEGORIES } from '@/lib/games/trivia'
+import { TRIVIA_CATEGORIES } from '@/lib/trivia-config'
 
 interface Props {
   room:   RoomPublic
