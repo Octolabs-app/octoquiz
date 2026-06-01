@@ -41,7 +41,17 @@ export type GameState =
   | ImposterState
   | TruthDareState
 
-// TRIVIA
+// TRIVIA / BRAIN BLITZ
+export type TriviaMode       = 'classic' | 'speed' | 'sudden-death'
+export type TriviaDifficulty = 'easy' | 'medium' | 'hard'
+
+export interface TriviaConfig {
+  category:      string
+  mode:          TriviaMode
+  questionCount: number
+  difficulty:    TriviaDifficulty
+}
+
 export interface TriviaQuestion {
   id: string
   question: string
@@ -62,6 +72,11 @@ export interface TriviaState {
   timeLimit: number
   startedAt: number | null
   category: string
+  // Brain Blitz extensions
+  mode:       TriviaMode
+  difficulty: TriviaDifficulty
+  eliminated: string[]                    // player IDs out (sudden-death)
+  streaks:    Record<string, number>      // consecutive correct per player
 }
 
 // FLAG QUIZ
@@ -143,7 +158,7 @@ export interface ClientToServerEvents {
   player_join:      (code: string, name: string, cb: (err: string | null, room: RoomPublic | null) => void) => void
   player_ready:     () => void
   select_game:      (game: GameType) => void
-  start_game:       () => void
+  start_game:       (config?: TriviaConfig) => void
   game_action:      (action: GameAction) => void
   next_round:       () => void
   end_game:         () => void

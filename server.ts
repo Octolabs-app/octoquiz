@@ -5,7 +5,8 @@ import { Server } from 'socket.io'
 import { networkInterfaces } from 'os'
 import type { ServerToClientEvents, ClientToServerEvents, Room } from './lib/types'
 import * as rm from './lib/room-manager'
-import { createTriviaGame, startQuestion, submitTriviaAnswer, calculateTriviaPoints, advanceTriviaQuestion, revealTriviaAnswer, showTriviaLeaderboard } from './lib/games/trivia'
+import { createTriviaGame, startQuestion, submitTriviaAnswer, calculateTriviaPoints, updateStreaks, eliminateWrongAnswers, isSuddenDeathOver, advanceTriviaQuestion, revealTriviaAnswer, showTriviaLeaderboard } from './lib/games/trivia'
+import type { TriviaConfig } from './lib/types'
 import { createFlagQuizGame, startFlagQuestion, submitFlagAnswer, calculateFlagPoints, advanceFlagQuestion, revealFlagAnswer, showFlagLeaderboard } from './lib/games/flag-quiz'
 import { createImposterGame, startDiscussion, startVoting, submitVote, resolveVotes, nextImposterRound } from './lib/games/imposter'
 import { createTruthDareGame, playerPicksTD, completeTurn, skipTurn } from './lib/games/truth-or-dare'
@@ -95,8 +96,8 @@ app.prepare().then(() => {
       return
     }
 
-    // ── After Dark is APK-only — never serve /couples on the hosted site ──
-    if (pathname === '/couples' || pathname.startsWith('/couples/')) {
+    // ── After Dark is APK-only — never serve /couples on the hosted site (prod only) ──
+    if (!dev && (pathname === '/couples' || pathname.startsWith('/couples/'))) {
       res.writeHead(404, { 'Content-Type': 'text/plain' })
       res.end('Not found')
       return
@@ -153,12 +154,29 @@ app.prepare().then(() => {
     const room = rm.getRoom(code)
     if (!room?.gameState || room.gameState.game !== 'trivia') return
 
-    const pts = calculateTriviaPoints(room.gameState, room.players.map(p => p.id))
+    const playerIds = room.players.map(p => p.id)
+    const pts       = calculateTriviaPoints(room.gameState, playerIds)
     rm.addPoints(code, pts)
-    const revealed = revealTriviaAnswer(room.gameState)
+
+    // Update streaks → then eliminate wrong-answerers (sudden-death)
+    let state = updateStreaks(room.gameState, playerIds)
+    state     = eliminateWrongAnswers(state, playerIds)
+    const revealed = revealTriviaAnswer(state)
     rm.setGameState(code, revealed)
     broadcast(code)
     broadcastGame(code)
+
+    // In sudden-death, if ≤1 player active → skip leaderboard, go straight to finish
+    if (isSuddenDeathOver(revealed, playerIds)) {
+      setTimer(code, 3000, () => {
+        const r = rm.getRoom(code)
+        if (!r?.gameState || r.gameState.game !== 'trivia') return
+        rm.setGameState(code, { ...r.gameState, phase: 'finished' })
+        broadcastGame(code)
+        setTimer(code, 1500, () => { rm.setRoomStatus(code, 'results'); broadcast(code) })
+      })
+      return
+    }
 
     setTimer(code, 3500, () => triviaLeaderboard(code))
   }
@@ -319,7 +337,7 @@ app.prepare().then(() => {
       const room = rm.getRoom(upperCode)
       if (!room) return cb('Room not found', null)
       if (room.status !== 'lobby') return cb('Game already started', null)
-      if (room.players.length >= 16) return cb('Room is full', null)
+      if (room.players.length >= 50) return cb('Room is full', null)
       if (room.players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
         return cb('Name already taken', null)
       }
@@ -354,13 +372,13 @@ app.prepare().then(() => {
     })
 
     // ── Start game ──
-    socket.on('start_game', async () => {
+    socket.on('start_game', async (config?: TriviaConfig) => {
       const room = rm.findRoomBySocket(socket.id)
       if (!room) return
       if (socket.id !== room.gameMasterId && socket.id !== room.hostId) return
       if (!room.currentGame) return
-      if (room.players.length < 2) {
-        socket.emit('error', 'Need at least 2 players to start')
+      if (room.players.length < 1) {
+        socket.emit('error', 'Need at least 1 player to start')
         return
       }
       if (room.currentGame === 'imposter' && room.players.length < 3) {
@@ -375,7 +393,7 @@ app.prepare().then(() => {
 
       switch (room.currentGame) {
         case 'trivia': {
-          const state = await createTriviaGame('Mixed', 10)
+          const state = await createTriviaGame(config)
           rm.setGameState(room.code, state)
           broadcast(room.code)
           broadcastGame(room.code)
@@ -420,9 +438,10 @@ app.prepare().then(() => {
           rm.setGameState(room.code, state)
           broadcastGame(room.code)
 
-          // Early reveal if all players answered
-          const answered = Object.keys(state.answers).length
-          if (answered >= room.players.length) {
+          // Early reveal if all ACTIVE (non-eliminated) players answered
+          const activePlayers = room.players.filter(p => !state.eliminated.includes(p.id))
+          const answered      = activePlayers.filter(p => state.answers[p.id]).length
+          if (activePlayers.length > 0 && answered >= activePlayers.length) {
             clearTimer(room.code)
             triviaReveal(room.code)
           }

@@ -20,7 +20,7 @@ function ConnectingLabel() {
 }
 
 const GAMES = [
-  { icon: '🧠', label: 'Trivia',   color: '#3b82f6' },
+  { icon: '🧠', label: 'Brain Blitz', color: '#3b82f6' },
   { icon: '🏳️', label: 'Flags',    color: '#22c55e' },
   { icon: '🕵️', label: 'Imposter', color: '#a855f7' },
   { icon: '🎲', label: 'T or D',   color: '#f97316' },

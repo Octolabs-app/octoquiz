@@ -20,7 +20,7 @@ export default function HostLobby({ room, socket }: Props) {
     setJoinUrl(`${base}/join/${room.code}`)
   }, [room.code])
 
-  const canStart = room.players.length >= 2
+  const canStart = room.players.length >= 1
 
   return (
     <div className="min-h-screen bg-night-900 flex flex-col p-8 no-select relative overflow-hidden">
@@ -101,7 +101,7 @@ export default function HostLobby({ room, socket }: Props) {
             {!canStart && (
               <motion.p animate={{ opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 2, repeat: Infinity }}
                 className="text-yellow-400/60 text-sm">
-                Waiting for {2 - room.players.length} more…
+                Waiting for players…
               </motion.p>
             )}
           </div>
@@ -172,9 +172,9 @@ export default function HostLobby({ room, socket }: Props) {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="glass rounded-2xl p-4 text-center w-full"
               style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-              <p className="text-white/25 text-xs mb-1">Need</p>
-              <p className="text-white/50 text-2xl font-black">{2 - room.players.length}</p>
-              <p className="text-white/25 text-xs">more player{2 - room.players.length !== 1 ? 's' : ''}</p>
+              <p className="text-white/25 text-xs mb-1">Waiting</p>
+              <p className="text-5xl mb-1">👋</p>
+              <p className="text-white/25 text-xs">for players to join</p>
             </motion.div>
           )}
         </div>
