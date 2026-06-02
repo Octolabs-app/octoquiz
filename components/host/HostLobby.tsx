@@ -6,6 +6,7 @@ import type { Socket } from 'socket.io-client'
 import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import QRCodeDisplay from '@/components/ui/QRCode'
 import PlayerBadge from '@/components/ui/PlayerBadge'
+import { useTVModeState, TVModeContext } from '@/hooks/useTVMode'
 
 interface Props {
   room: RoomPublic
@@ -14,6 +15,8 @@ interface Props {
 
 export default function HostLobby({ room, socket }: Props) {
   const [joinUrl, setJoinUrl] = useState('')
+  const tvModeState = useTVModeState()
+  const { tvMode, toggleTVMode } = tvModeState
 
   useEffect(() => {
     const base = window.location.origin
@@ -23,7 +26,9 @@ export default function HostLobby({ room, socket }: Props) {
   const canStart = room.players.length >= 1
 
   return (
-    <div className="min-h-screen bg-night-900 flex flex-col p-8 no-select relative overflow-hidden">
+    <TVModeContext.Provider value={tvModeState}>
+    <div className={`min-h-screen bg-night-900 flex flex-col no-select relative overflow-hidden ${tvMode ? 'p-4' : 'p-8'}`}
+      style={tvMode ? { fontSize: '1.4em' } : undefined}>
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-1/4 w-[32rem] h-[32rem] bg-purple-900/15 rounded-full blur-3xl" />
@@ -33,19 +38,34 @@ export default function HostLobby({ room, socket }: Props) {
       {/* Header */}
       <div className="relative flex items-start justify-between mb-8">
         <div>
-          <p className="text-white/20 text-xs uppercase tracking-[0.4em] mb-1">Yomu Studio</p>
-          <h1 className="text-2xl font-black text-white/60 uppercase tracking-wider">Game Night</h1>
+          {!tvMode && <p className="text-white/20 text-xs uppercase tracking-[0.4em] mb-1">Octolabs</p>}
+          <h1 className="text-2xl font-black text-white/60 uppercase tracking-wider font-display">OctoQuiz</h1>
         </div>
+        <div className="flex items-start gap-3">
+        {/* TV mode toggle */}
+        <button
+          onClick={toggleTVMode}
+          title={tvMode ? 'Exit TV mode' : 'TV / Big Screen mode'}
+          className="rounded-xl px-3 py-2 text-sm font-bold transition-all"
+          style={{
+            background: tvMode ? 'rgba(198,168,124,0.2)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${tvMode ? '#C6A87C' : 'rgba(255,255,255,0.1)'}`,
+            color: tvMode ? '#C6A87C' : 'rgba(255,255,255,0.4)',
+          }}>
+          📺
+        </button>
         <div className="text-right">
           <p className="text-white/25 text-xs uppercase tracking-widest mb-2">Room Code</p>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', bounce: 0.4 }}
-            className="text-6xl font-black tracking-[0.15em] bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+            className="font-black tracking-[0.15em] font-display"
+            style={{ fontSize: tvMode ? '5rem' : '3.75rem', color: '#C6A87C' }}>
             {room.code}
           </motion.div>
         </div>
+        </div>{/* end flex items-start gap-3 */}
       </div>
 
       <div className="relative flex flex-1 gap-8">
@@ -157,10 +177,11 @@ export default function HostLobby({ room, socket }: Props) {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => socket.emit('select_game', 'trivia')}
-                className="w-full rounded-2xl py-5 text-xl font-black text-white transition-all"
+                className="w-full rounded-2xl py-5 text-xl font-black transition-all font-display"
                 style={{
-                  background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
-                  boxShadow: '0 20px 50px -15px rgba(124,58,237,0.7)',
+                  background: 'linear-gradient(135deg, #C6A87C, #a8894e)',
+                  color: '#0B1120',
+                  boxShadow: '0 20px 50px -15px rgba(198,168,124,0.5)',
                 }}>
                 Pick a Game →
               </motion.button>
@@ -180,5 +201,6 @@ export default function HostLobby({ room, socket }: Props) {
         </div>
       </div>
     </div>
+    </TVModeContext.Provider>
   )
 }

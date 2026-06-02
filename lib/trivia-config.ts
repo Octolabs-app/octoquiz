@@ -14,4 +14,5 @@ export const TRIVIA_CATEGORIES: { id: string; icon: string; color: string }[] = 
   { id: 'Sports',              icon: '⚽', color: '#84cc16' },
   { id: 'Pop Culture',         icon: '🎭', color: '#8b5cf6' },
   { id: 'Food & Cuisine',      icon: '🍕', color: '#fb923c' },
+  { id: 'Mauritius',           icon: '🇲🇺', color: '#C6A87C' },
 ]

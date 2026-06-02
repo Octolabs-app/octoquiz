@@ -1,4 +1,4 @@
-# Render Blueprint — Yomu Game Night
+# Render Blueprint — OctoQuiz
 # https://render.com/docs/blueprint-spec
 #
 # Push this file to your GitHub repo and on Render: "New +" → "Blueprint" →
@@ -6,7 +6,7 @@
 
 services:
   - type: web
-    name: yomu-game-night
+    name: octoquiz
     runtime: node
     plan: free                   # 750 free hrs/mo; sleeps after 15 min idle
     region: frankfurt            # change to oregon / singapore / virginia if closer

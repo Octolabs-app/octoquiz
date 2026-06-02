@@ -90,7 +90,7 @@ app.prepare().then(() => {
     // ── Password gate (Basic Auth) ──
     if (!isAuthorized(req.headers.authorization)) {
       res.writeHead(401, {
-        'WWW-Authenticate': 'Basic realm="QuizBlast", charset="UTF-8"',
+        'WWW-Authenticate': 'Basic realm="OctoQuiz", charset="UTF-8"',
         'Content-Type': 'text/plain',
       })
       res.end('Authentication required')
@@ -401,7 +401,7 @@ app.prepare().then(() => {
     })
 
     // ── Player joins room ──
-    socket.on('player_join', (code, name, cb) => {
+    socket.on('player_join', (code, name, avatar, cb) => {
       const upperCode = code.toUpperCase()
       const room = rm.getRoom(upperCode)
       if (!room) return cb('Room not found', null)
@@ -411,7 +411,7 @@ app.prepare().then(() => {
         return cb('Name already taken', null)
       }
 
-      const player = rm.addPlayer(upperCode, { id: socket.id, name })
+      const player = rm.addPlayer(upperCode, { id: socket.id, name }, avatar)
       if (!player) return cb('Failed to join', null)
 
       socket.join(upperCode)
@@ -623,7 +623,7 @@ app.prepare().then(() => {
 
   httpServer.listen(port, '0.0.0.0', () => {
     const ip = getLocalIP()
-    console.log('\n🎮  QuizBlast')
+    console.log('\n🐙  OctoQuiz')
     if (LOCKED_NO_PASSWORD) {
       console.log('   🔒 LOCKED — SITE_PASSWORD not set; serving 503 to everyone.')
     } else if (AUTH_ENABLED) {

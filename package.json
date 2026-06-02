@@ -1,7 +1,9 @@
 {
-  "name": "yomu-game-night",
-  "version": "0.1.0",
+  "name": "octoquiz",
+  "version": "0.2.0",
   "private": true,
+  "description": "OctoQuiz — multiplayer party trivia by Octolabs",
+  "homepage": "https://octoquiz.octolabs.app",
   "scripts": {
     "dev": "tsx watch server.ts",
     "build": "next build",
@@ -19,6 +21,8 @@
     "@capacitor/core": "^6.2.0",
     "@capacitor/haptics": "^6.0.2",
     "@capacitor/status-bar": "^6.0.2",
+    "@types/canvas-confetti": "^1.9.0",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "next": "^15.1.0",

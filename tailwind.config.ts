@@ -9,11 +9,17 @@ const config: Config = {
     extend: {
       colors: {
         night: {
-          900: '#0a0a14',
-          800: '#0f0f1e',
-          700: '#161628',
-          600: '#1e1e35',
-          500: '#2a2a4a',
+          900: '#0B1120',
+          800: '#0f1628',
+          700: '#141d32',
+          600: '#1a253d',
+          500: '#222f4a',
+        },
+        brand: {
+          gold:   '#C6A87C',
+          text:   '#E8E6E1',
+          muted:  'rgba(232,230,225,0.45)',
+          card:   'rgba(255,255,255,0.03)',
         },
         player: {
           red:    '#ef4444',
@@ -27,15 +33,18 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        display: ['Jura', 'var(--font-display)', 'system-ui', 'sans-serif'],
+        body:    ['system-ui', 'sans-serif'],
       },
       animation: {
-        'bounce-in': 'bounceIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
-        'fade-up':   'fadeUp 0.3s ease-out',
-        'pulse-glow':'pulseGlow 2s infinite',
-        'score-pop': 'scorePop 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
-        'slide-in':  'slideIn 0.35s ease-out',
-        'shake':     'shake 0.4s ease-in-out',
+        'bounce-in':  'bounceIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
+        'fade-up':    'fadeUp 0.3s ease-out',
+        'pulse-glow': 'pulseGlow 2s infinite',
+        'score-pop':  'scorePop 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
+        'slide-in':   'slideIn 0.35s ease-out',
+        'shake':      'shake 0.4s ease-in-out',
+        'ring-pulse': 'ringPulse 0.6s ease-in-out infinite',
+        'float-up':   'floatUp 1s ease-out forwards',
       },
       keyframes: {
         bounceIn: {
@@ -68,6 +77,14 @@ const config: Config = {
           '40%':      { transform: 'translateX(8px)' },
           '60%':      { transform: 'translateX(-6px)' },
           '80%':      { transform: 'translateX(6px)' },
+        },
+        ringPulse: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%':      { transform: 'scale(1.12)', opacity: '0.7' },
+        },
+        floatUp: {
+          '0%':   { transform: 'translateY(0)', opacity: '1' },
+          '100%': { transform: 'translateY(-80px)', opacity: '0' },
         },
       },
     },

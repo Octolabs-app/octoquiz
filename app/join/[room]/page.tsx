@@ -24,10 +24,11 @@ export default function PlayerPage() {
   const [joined, setJoined] = useState(false)
   const [error, setError] = useState('')
 
-  // Name + join form state (if not joined yet)
   const [name, setName] = useState(() =>
     typeof window !== 'undefined' ? sessionStorage.getItem('playerName') ?? '' : ''
   )
+  const [avatar, setAvatar] = useState('🦑')
+  const AVATARS = ['🦑', '🐙', '🦈', '🦊', '🐺', '🐸', '🦁', '🐯'] as const
 
   useEffect(() => {
     if (!socket) return
@@ -56,7 +57,7 @@ export default function PlayerPage() {
   function handleJoin(e: React.FormEvent) {
     e.preventDefault()
     if (!socket || !name.trim()) return
-    socket.emit('player_join', roomCode, name.trim(), (err, r) => {
+    socket.emit('player_join', roomCode, name.trim(), avatar, (err, r) => {
       if (err) { setError(err); return }
       if (r) {
         setRoom(r)
@@ -77,9 +78,22 @@ export default function PlayerPage() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-night-900">
         <div className="w-full max-w-xs text-center">
-          <div className="text-5xl mb-3">🎮</div>
-          <h1 className="text-2xl font-black mb-1">Room <span className="text-purple-400">{roomCode}</span></h1>
-          <p className="text-white/40 text-sm mb-8">Enter your name to join</p>
+          <div className="text-5xl mb-3">🐙</div>
+          <h1 className="text-2xl font-black mb-1 font-display" style={{ color: '#E8E6E1' }}>
+            Room <span style={{ color: '#C6A87C' }}>{roomCode}</span>
+          </h1>
+          <p className="text-sm mb-6" style={{ color: 'rgba(232,230,225,0.4)' }}>Pick avatar &amp; enter your name</p>
+          {/* Avatar picker */}
+          <div className="grid grid-cols-8 gap-2 mb-5">
+            {AVATARS.map(em => (
+              <button key={em} onClick={() => setAvatar(em)} className="text-2xl rounded-xl py-1.5 transition-all"
+                style={{
+                  background: avatar === em ? 'rgba(198,168,124,0.2)' : 'rgba(255,255,255,0.03)',
+                  border: `1.5px solid ${avatar === em ? '#C6A87C' : 'rgba(198,168,124,0.12)'}`,
+                  transform: avatar === em ? 'scale(1.15)' : 'scale(1)',
+                }}>{em}</button>
+            ))}
+          </div>
           <form onSubmit={handleJoin} className="space-y-3">
             <input
               value={name}
@@ -87,15 +101,17 @@ export default function PlayerPage() {
               placeholder="Your name"
               maxLength={16}
               autoFocus
-              className="w-full glass rounded-2xl px-4 py-4 text-lg outline-none focus:border-purple-500 border border-transparent transition-all placeholder:text-white/30 text-center"
+              className="w-full rounded-2xl px-4 py-4 text-lg outline-none border transition-all placeholder:text-brand-muted text-center"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(198,168,124,0.12)', color: '#E8E6E1' }}
             />
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={!name.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-2xl py-4 text-lg font-bold transition-all active:scale-95"
+              className="w-full rounded-2xl py-4 text-lg font-bold transition-all disabled:opacity-40 active:scale-95 font-display"
+              style={{ background: 'linear-gradient(135deg, #C6A87C, #a8894e)', color: '#0B1120', minHeight: '72px' }}
             >
-              Join Game
+              {avatar} Join Game
             </button>
           </form>
         </div>

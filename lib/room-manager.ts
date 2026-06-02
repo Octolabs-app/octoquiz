@@ -38,17 +38,21 @@ export function deleteRoom(code: string): void {
   rooms.delete(code)
 }
 
-export function addPlayer(code: string, player: Omit<Player, 'color' | 'avatar' | 'score' | 'isReady' | 'isConnected'>): Player | null {
+export function addPlayer(code: string, player: Omit<Player, 'color' | 'avatar' | 'score' | 'isReady' | 'isConnected'>, preferredAvatar?: string): Player | null {
   const room = rooms.get(code)
   if (!room) return null
 
   const colorIndex = room.players.length % PLAYER_COLORS.length
   const avatarIndex = room.players.length % PLAYER_EMOJIS.length
+  const validEmojis: readonly string[] = PLAYER_EMOJIS
+  const chosenAvatar = preferredAvatar && validEmojis.includes(preferredAvatar)
+    ? preferredAvatar
+    : PLAYER_EMOJIS[avatarIndex]
 
   const newPlayer: Player = {
     ...player,
     color: PLAYER_COLORS[colorIndex],
-    avatar: PLAYER_EMOJIS[avatarIndex],
+    avatar: chosenAvatar,
     score: 0,
     isReady: false,
     isConnected: true,

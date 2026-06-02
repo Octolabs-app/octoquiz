@@ -13,7 +13,8 @@ export function useSocket() {
 
   useEffect(() => {
     if (!globalSocket) {
-      globalSocket = io(window.location.origin, {
+      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin
+      globalSocket = io(socketUrl, {
         transports: ['websocket'],
         reconnectionAttempts: 5,
       })

@@ -4,13 +4,15 @@ import { useRef, useCallback } from 'react'
 export type SoundName =
   | 'correct'   // ✅ right answer — ascending chime
   | 'wrong'     // ❌ wrong answer — descending buzz
-  | 'tick'      // 🕐 timer tick — soft click
+  | 'tick'      // 🕐 timer tick — 880 Hz beep
   | 'reveal'    // 🎺 answer revealed — pop + shimmer
   | 'points'    // ⭐ score up — sparkle run
   | 'draw'      // 🃏 card drawn — whoosh
   | 'start'     // 🚀 game starts — short fanfare
   | 'select'    // 👆 button selected — soft click
   | 'whoosh'    // 💨 transition — sweep
+  | 'winner'    // 🏆 round winner — short melody
+  | 'gameover'  // 🎉 game over — full fanfare
 
 export function useSound() {
   const ctxRef = useRef<AudioContext | null>(null)
@@ -79,15 +81,22 @@ export function useSound() {
         }
 
         case 'wrong': {
-          // ❌ Falling minor 2nd — buzzy sawtooth
-          tone(ac, 300, now, 0.1, 0.2, 'sawtooth')
-          tone(ac, 240, now + 0.12, 0.25, 0.2, 'sawtooth')
+          // ❌ Descending buzz 200 Hz → 100 Hz
+          const osc = ac.createOscillator()
+          const g = ac.createGain()
+          osc.connect(g); g.connect(ac.destination)
+          osc.type = 'sawtooth'
+          osc.frequency.setValueAtTime(200, now)
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.3)
+          g.gain.setValueAtTime(0.2, now)
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
+          osc.start(now); osc.stop(now + 0.38)
           break
         }
 
         case 'tick': {
-          // 🕐 Soft high click
-          tone(ac, 1200, now, 0.04, 0.12, 'sine')
+          // 🕐 880 Hz beep — 50 ms
+          tone(ac, 880, now, 0.05, 0.15, 'sine')
           break
         }
 
@@ -151,6 +160,25 @@ export function useSound() {
           g.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
           osc.start(now)
           osc.stop(now + 0.27)
+          break
+        }
+
+        case 'winner': {
+          // 🏆 Round winner short melody
+          const melody = [523.25, 659.25, 783.99, 1046.5, 1318.5]
+          melody.forEach((f, i) => tone(ac, f, now + i * 0.09, 0.25, 0.2, 'triangle'))
+          break
+        }
+
+        case 'gameover': {
+          // 🎉 Full fanfare
+          tone(ac, 523.25, now,       0.12, 0.25, 'triangle')
+          tone(ac, 659.25, now + 0.1, 0.12, 0.25, 'triangle')
+          tone(ac, 783.99, now + 0.2, 0.12, 0.25, 'triangle')
+          tone(ac, 1046.5, now + 0.32, 0.3, 0.3, 'triangle')
+          tone(ac, 880,    now + 0.32, 0.3, 0.15, 'sine')
+          tone(ac, 1318.5, now + 0.55, 0.5, 0.3, 'triangle')
+          noise(ac, now + 0.55, 0.3, 0.1)
           break
         }
       }

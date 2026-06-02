@@ -88,6 +88,7 @@ export default function TriviaPlayer({ state, me, socket }: Props) {
     if (myAnswer || state.phase !== 'question' || isEliminated) return
     play('select')
     haptic(50)
+    if (navigator.vibrate) navigator.vibrate(100)
     setSelected(idx)
     socket.emit('game_action', { type: 'trivia_answer', answerId: idx })
   }
@@ -338,8 +339,8 @@ export default function TriviaPlayer({ state, me, socket }: Props) {
               whileTap={!locked ? { scale: 0.95 } : {}}
               onClick={() => handleAnswer(i)}
               disabled={locked}
-              className="w-full rounded-2xl px-5 py-4 flex items-center gap-4 disabled:cursor-default text-left"
-              style={{ background: bg, border: `2px solid ${border}` }}
+              className="w-full rounded-2xl px-5 flex items-center gap-4 disabled:cursor-default text-left"
+              style={{ minHeight: '72px', paddingTop: '14px', paddingBottom: '14px', background: bg, border: `2px solid ${border}` }}
             >
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0"

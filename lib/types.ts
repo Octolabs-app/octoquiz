@@ -5,7 +5,7 @@ export const PLAYER_COLORS = [
   '#f97316', '#a855f7', '#ec4899', '#06b6d4',
 ] as const
 
-export const PLAYER_EMOJIS = ['🦊', '🐺', '🦁', '🐯', '🐻', '🦄', '🐸', '🦋'] as const
+export const PLAYER_EMOJIS = ['🦑', '🐙', '🦈', '🦊', '🐺', '🐸', '🦁', '🐯'] as const
 
 export interface Player {
   id: string          // socket ID
@@ -188,7 +188,7 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   host_create_room: (cb: (code: string) => void) => void
-  player_join:      (code: string, name: string, cb: (err: string | null, room: RoomPublic | null) => void) => void
+  player_join:      (code: string, name: string, avatar: string, cb: (err: string | null, room: RoomPublic | null) => void) => void
   player_ready:     () => void
   select_game:      (game: GameType) => void
   start_game:       (config?: TriviaConfig) => void

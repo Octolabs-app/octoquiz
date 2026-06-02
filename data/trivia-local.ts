@@ -329,6 +329,22 @@ const bank: LocalBank = {
     { q: 'Worcestershire sauce contains which unusual ingredient?', o: ['Oysters','Anchovies','Sardines','Shrimp'], a: 1 },
     { q: 'The Scoville scale measures:', o: ['Acidity of food','Spiciness (capsaicin) of peppers','Sweetness of sugar','Saltiness of food'], a: 1 },
   ],
+
+  // ─── Mauritius ───────────────────────────────────────────────────────────────
+  'Mauritius': [
+    { q: 'What is the capital city of Mauritius?', o: ['Curepipe','Port Louis','Rose Hill','Mahébourg'], a: 1 },
+    { q: 'Mauritius gained independence from which country in 1968?', o: ['France','Portugal','Netherlands','United Kingdom'], a: 3 },
+    { q: 'Which extinct bird is closely associated with Mauritius?', o: ['Passenger Pigeon','Great Auk','Dodo','Moa'], a: 2 },
+    { q: 'What is the official currency of Mauritius?', o: ['Mauritian Dollar','Mauritian Rupee','Franc','Shilling'], a: 1 },
+    { q: 'Which ocean surrounds Mauritius?', o: ['Atlantic Ocean','Pacific Ocean','Indian Ocean','Southern Ocean'], a: 2 },
+    { q: 'What is the highest peak in Mauritius?', o: ['Piton de la Petite Rivière Noire','Le Pouce','Corps de Garde','Rempart Mountain'], a: 0 },
+    { q: 'Which Mauritian dish is a spiced flatbread served with curry?', o: ['Roti','Dholl Puri','Farata','Boulette'], a: 1 },
+    { q: 'Mauritius is part of which island group in the Indian Ocean?', o: ['Seychelles','Maldives','Mascarene Islands','Comoros'], a: 2 },
+    { q: 'In which year was Mauritius first settled by the Dutch?', o: ['1498','1598','1638','1715'], a: 2 },
+    { q: 'What is the most widely spoken language in Mauritius?', o: ['English','French','Hindi','Mauritian Creole'], a: 3 },
+    { q: 'Which Mauritian sugar company is one of the largest employers on the island?', o: ['Medine','Rogers','Alteo','Omnicane'], a: 2 },
+    { q: 'The Seven Coloured Earths is a famous natural wonder in which district?', o: ['Savanne','Rivière Noire','Grand Port','Flacq'], a: 1 },
+  ],
 }
 
 export default bank

@@ -89,7 +89,7 @@ export default function ServerWakingScreen({
             <>
               <p className="mb-2">
                 {variant === 'host'
-                  ? "The TV is connecting to Yomu's game server."
+                  ? "The TV is connecting to OctoQuiz's game server."
                   : "Your phone is connecting to the game."}
               </p>
               <p className="text-white/40 text-xs">
