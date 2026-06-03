@@ -1,4 +1,6 @@
-import wordPairs from '@/data/imposter-words.json'
+// Decoy uses its own list of simple, single-word, easy-to-draw pairs
+// (the verbal Imposter game keeps the longer location-style words).
+import wordPairs from '@/data/decoy-words.json'
 import type { DrawImposterState } from '@/lib/types'
 
 const TURN_SECONDS   = 15      // each player's turn on the shared board
