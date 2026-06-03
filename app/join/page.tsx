@@ -1,8 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useGamePlayer } from '@/hooks/useGamePlayer'
-import type { GameState } from '@/lib/types'
 import PlayerLobby from '@/components/player/PlayerLobby'
 import TriviaPlayer from '@/components/player/games/TriviaPlayer'
 import FlagQuizPlayer from '@/components/player/games/FlagQuizPlayer'
@@ -14,10 +13,25 @@ import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
 const AVATARS = ['🦑', '🐙', '🦈', '🦊', '🐺', '🐸', '🦁', '🐯'] as const
 
+// Static-export friendly: room code comes from the query string (?room=ABCD),
+// resolved on the client so there is no dynamic route segment to prerender.
 export default function JoinPage() {
-  const params   = useParams()
+  const [roomCode, setRoomCode] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const code = (sp.get('room') || '').toUpperCase()
+    if (!code) { router.replace('/'); return }
+    setRoomCode(code)
+  }, [router])
+
+  if (!roomCode) return <ServerWakingScreen variant="player" />
+  return <JoinRoom roomCode={roomCode} />
+}
+
+function JoinRoom({ roomCode }: { roomCode: string }) {
   const router   = useRouter()
-  const roomCode = (params.room as string).toUpperCase()
 
   const [name,   setName]   = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('playerName') ?? '' : '')
   const [avatar, setAvatar] = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('playerAvatar') ?? '🦑' : '🦑')

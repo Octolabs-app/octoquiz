@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standard Next.js build — @cloudflare/next-on-pages converts to CF Pages format
-  // Run: npx @cloudflare/next-on-pages  (on Linux / CF Pages build environment)
+  // OctoQuiz is a fully client-side SPA (Supabase Realtime, no server routes),
+  // so we ship a static export and host it on Cloudflare Pages — no Node server.
+  output: 'export',
   reactStrictMode: false,
   images: {
+    // Static export has no image optimization server; serve images as-is.
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'flagcdn.com', pathname: '/**' },
     ],

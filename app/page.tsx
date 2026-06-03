@@ -38,7 +38,7 @@ export default function HomePage() {
 
   function handleHostRoom() {
     const roomCode = generateRoomCode()
-    router.push(`/host/${roomCode}`)
+    router.push(`/host?room=${roomCode}`)
   }
 
   function handleJoin(e: React.FormEvent) {
@@ -46,7 +46,7 @@ export default function HomePage() {
     if (!code.trim() || !name.trim()) return
     sessionStorage.setItem('playerName',   name.trim())
     sessionStorage.setItem('playerAvatar', avatar)
-    router.push(`/join/${code.trim().toUpperCase()}`)
+    router.push(`/join?room=${code.trim().toUpperCase()}`)
   }
 
   return (

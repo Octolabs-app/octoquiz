@@ -1,6 +1,7 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { useGameHost } from '@/hooks/useGameHost'
+import { generateRoomCode } from '@/lib/supabase'
 import type { TriviaConfig } from '@/lib/types'
 import HostLobby from '@/components/host/HostLobby'
 import GameSelect from '@/components/host/GameSelect'
@@ -12,10 +13,28 @@ import LandmarksHost from '@/components/host/games/LandmarksHost'
 import ResultsScreen from '@/components/host/ResultsScreen'
 import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
+// Static-export friendly: the room code lives in the query string (?room=ABCD),
+// resolved on the client so there is no dynamic route segment to prerender.
 export default function HostPage() {
-  const params   = useParams()
-  const roomCode = (params.room as string).toUpperCase()
+  const [roomCode, setRoomCode] = useState<string | null>(null)
 
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    let code = (sp.get('room') || '').toUpperCase()
+    if (!code) {
+      code = generateRoomCode()
+      const url = new URL(window.location.href)
+      url.searchParams.set('room', code)
+      window.history.replaceState({}, '', url.toString())
+    }
+    setRoomCode(code)
+  }, [])
+
+  if (!roomCode) return <ServerWakingScreen variant="host" />
+  return <HostRoom roomCode={roomCode} />
+}
+
+function HostRoom({ roomCode }: { roomCode: string }) {
   const {
     room, gameState, connected,
     selectGame, startGame, kickPlayer, endGame, nextRound,
@@ -26,11 +45,11 @@ export default function HostPage() {
 
   // Build a "socket-like" object so existing components work unchanged
   const emit = {
-    selectGame: (game: string)       => selectGame(game as Parameters<typeof selectGame>[0]),
+    selectGame: (game: string)         => selectGame(game as Parameters<typeof selectGame>[0]),
     startGame:  (config?: TriviaConfig) => startGame(config),
-    kickPlayer: (id: string)         => kickPlayer(id),
-    endGame:    ()                   => endGame(),
-    nextRound:  ()                   => nextRound(),
+    kickPlayer: (id: string)           => kickPlayer(id),
+    endGame:    ()                     => endGame(),
+    nextRound:  ()                     => nextRound(),
   }
 
   if (room.status === 'lobby')       return <HostLobby  room={room} emit={emit} />

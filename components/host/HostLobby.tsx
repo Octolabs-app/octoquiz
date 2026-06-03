@@ -20,7 +20,7 @@ export default function HostLobby({ room, emit }: Props) {
 
   useEffect(() => {
     const base = window.location.origin
-    setJoinUrl(`${base}/join/${room.code}`)
+    setJoinUrl(`${base}/join?room=${room.code}`)
   }, [room.code])
 
   const canStart = room.players.length >= 1
