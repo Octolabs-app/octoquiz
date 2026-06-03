@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { generateRoomCode } from '@/lib/supabase'
+import AdBanner from '@/components/ui/AdBanner'
 
 const OCTOLABS_LOGO = (
   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -151,6 +152,12 @@ export default function HomePage() {
                   <div className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(232,230,225,0.45)' }}>{g.label}</div>
                 </motion.div>
               ))}
+            </motion.div>
+
+            {/* Non-invasive ad — below game chips, only on home screen */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+              className="mt-6">
+              <AdBanner variant="banner" />
             </motion.div>
           </div>
         </motion.main>

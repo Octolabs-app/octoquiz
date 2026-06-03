@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import type { RoomPublic } from '@/lib/types'
 import { useSound } from '@/hooks/useSound'
 import confetti from 'canvas-confetti'
+import AdBanner from '@/components/ui/AdBanner'
 
 interface Props {
   room: RoomPublic
@@ -99,6 +100,12 @@ export default function ResultsScreen({ room, onPlayAgain }: Props) {
           ))}
         </div>
       )}
+
+      {/* Non-invasive ad — between leaderboard and play again, dismissible */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+        className="mb-6">
+        <AdBanner variant="card" />
+      </motion.div>
 
       <motion.button
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}

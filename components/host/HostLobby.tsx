@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { RoomPublic } from '@/lib/types'
 import type { HostEmit } from '@/lib/host-emit'
+import AdBanner from '@/components/ui/AdBanner'
 import QRCodeDisplay from '@/components/ui/QRCode'
 import PlayerBadge from '@/components/ui/PlayerBadge'
 import { useTVModeState, TVModeContext } from '@/hooks/useTVMode'
@@ -100,6 +101,12 @@ export default function HostLobby({ room, emit }: Props) {
                 <span className="text-white/40">{step.text}</span>
               </div>
             ))}
+          </motion.div>
+
+          {/* Subtle inline ad while waiting */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+            className="w-full mt-3">
+            <AdBanner variant="inline" />
           </motion.div>
         </div>
 
