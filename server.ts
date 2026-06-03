@@ -16,16 +16,11 @@ const dev  = process.env.NODE_ENV !== 'production'
 const port = parseInt(process.env.PORT ?? '3000', 10)
 
 // ─── Access control ───────────────────────────────────────────────────────────
-// SITE_PASSWORD gates the entire deployment behind HTTP Basic Auth. Set it as an
-// env var on Render so the public URL is unusable without the password. If it is
-// unset (e.g. local dev) the gate is disabled. Username is ignored; only the
-// password is checked.
+// SITE_PASSWORD gates the entire deployment behind HTTP Basic Auth.
+// If unset (default), the app is fully public — correct for OctoQuiz.
 const SITE_PASSWORD = process.env.SITE_PASSWORD ?? ''
 const AUTH_ENABLED  = SITE_PASSWORD.length > 0
-
-// Fail closed: in production the password is mandatory. If it's missing we serve
-// 503 for everything so the public URL is never usable by accident.
-const LOCKED_NO_PASSWORD = !dev && !AUTH_ENABLED
+const LOCKED_NO_PASSWORD = false  // OctoQuiz is a public party game — no password gate
 
 function timingSafeEqual(a: string, b: string): boolean {
   // Constant-time-ish compare to avoid leaking length/character timing.
