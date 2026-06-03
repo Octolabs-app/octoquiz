@@ -2,7 +2,7 @@
 /**
  * useGameHost — runs all OctoQuiz game logic on the host client.
  *
- * Replaces the server.ts Socket.IO server for Cloudflare Pages deployment.
+ * Replaces the server.ts Socket.IO server for Cloudflare deployment.
  * The host browser IS the game server: it manages state, runs timers,
  * and broadcasts updates to players via Supabase Realtime Broadcast.
  */

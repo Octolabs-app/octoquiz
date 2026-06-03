@@ -1,8 +1,12 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standard Next.js build — @cloudflare/next-on-pages converts to CF Pages format
-  // Run: npx @cloudflare/next-on-pages  (on Linux / CF Pages build environment)
   reactStrictMode: false,
+  outputFileTracingRoot: __dirname,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'flagcdn.com', pathname: '/**' },
