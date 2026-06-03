@@ -1,18 +1,16 @@
 'use client'
 import { useState } from 'react'
 import type { ImposterState, Player, RoomPublic } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import { useHaptic } from '@/hooks/useHaptic'
 
 interface Props {
   state: ImposterState
   me: Player
   room: RoomPublic
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  sendAction: (action: import('@/lib/types').GameAction) => void
 }
 
-export default function ImposterPlayer({ state, me, room, socket }: Props) {
+export default function ImposterPlayer({ state, me, room, sendAction }: Props) {
   const [voted, setVoted] = useState<string | null>(null)
   const isImposter = state.imposterId === me.id
   const myVote = state.votes[me.id]
@@ -22,7 +20,7 @@ export default function ImposterPlayer({ state, me, room, socket }: Props) {
     if (myVote || targetId === me.id) return
     haptic(50)
     setVoted(targetId)
-    socket.emit('game_action', { type: 'imposter_vote', targetId })
+    sendAction({ type: 'imposter_vote', targetId })
   }
 
   // Reveal phase — show secret word

@@ -2,8 +2,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { TriviaState, Player } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import Timer from '@/components/ui/Timer'
 import { useSound } from '@/hooks/useSound'
 import { useHaptic } from '@/hooks/useHaptic'
@@ -11,7 +9,7 @@ import { useHaptic } from '@/hooks/useHaptic'
 interface Props {
   state:  TriviaState
   me:     Player
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  sendAction: (action: import('@/lib/types').GameAction) => void
 }
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
@@ -45,7 +43,7 @@ function spawnConfetti(container: HTMLElement | null) {
   }
 }
 
-export default function TriviaPlayer({ state, me, socket }: Props) {
+export default function TriviaPlayer({ state, me, sendAction }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const myAnswer      = state.answers[me.id]
   const isEliminated  = state.eliminated.includes(me.id)
@@ -90,7 +88,7 @@ export default function TriviaPlayer({ state, me, socket }: Props) {
     haptic(50)
     if (navigator.vibrate) navigator.vibrate(100)
     setSelected(idx)
-    socket.emit('game_action', { type: 'trivia_answer', answerId: idx })
+    sendAction({ type: 'trivia_answer', answerId: idx })
   }
 
   // ── Eliminated screen ─────────────────────────────────────────────────────────

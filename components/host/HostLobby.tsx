@@ -2,18 +2,17 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { RoomPublic } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
+import type { HostEmit } from '@/lib/host-emit'
 import QRCodeDisplay from '@/components/ui/QRCode'
 import PlayerBadge from '@/components/ui/PlayerBadge'
 import { useTVModeState, TVModeContext } from '@/hooks/useTVMode'
 
 interface Props {
   room: RoomPublic
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  emit: HostEmit
 }
 
-export default function HostLobby({ room, socket }: Props) {
+export default function HostLobby({ room, emit }: Props) {
   const [joinUrl, setJoinUrl] = useState('')
   const tvModeState = useTVModeState()
   const { tvMode, toggleTVMode } = tvModeState
@@ -176,7 +175,7 @@ export default function HostLobby({ room, socket }: Props) {
                 transition={{ type: 'spring', bounce: 0.45 }}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => socket.emit('select_game', 'trivia')}
+                onClick={() => emit.selectGame('trivia')}
                 className="w-full rounded-2xl py-5 text-xl font-black transition-all font-display"
                 style={{
                   background: 'linear-gradient(135deg, #C6A87C, #a8894e)',

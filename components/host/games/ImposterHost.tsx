@@ -1,18 +1,17 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { RoomPublic, ImposterState } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
+import type { HostEmit } from '@/lib/host-emit'
 import Scoreboard from '@/components/ui/Scoreboard'
 import PlayerBadge from '@/components/ui/PlayerBadge'
 
 interface Props {
   room: RoomPublic
   state: ImposterState
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  emit: HostEmit
 }
 
-export default function ImposterHost({ room, state, socket }: Props) {
+export default function ImposterHost({ room, state, emit }: Props) {
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export default function ImposterHost({ room, state, socket }: Props) {
           ))}
         </div>
         <button
-          onClick={() => socket.emit('next_round')}
+          onClick={() => emit.nextRound()}
           className="bg-purple-600 hover:bg-purple-500 rounded-2xl px-12 py-5 text-2xl font-black transition-all active:scale-95 animate-pulse-glow"
         >
           Start Discussion →

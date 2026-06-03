@@ -2,19 +2,17 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { RoomPublic } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import { useSound } from '@/hooks/useSound'
 import confetti from 'canvas-confetti'
 
 interface Props {
   room: RoomPublic
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  onPlayAgain?: () => void
 }
 
 const medals = ['🥇', '🥈', '🥉']
 
-export default function ResultsScreen({ room, socket }: Props) {
+export default function ResultsScreen({ room, onPlayAgain }: Props) {
   const sorted = [...room.players].sort((a, b) => b.score - a.score)
   const winner = sorted[0]
   const { play } = useSound()
@@ -32,7 +30,7 @@ export default function ResultsScreen({ room, socket }: Props) {
   }, [play])
 
   function playAgain() {
-    socket.emit('select_game', 'trivia')
+    onPlayAgain?.()
   }
 
   return (

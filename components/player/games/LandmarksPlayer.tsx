@@ -2,18 +2,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { LandmarksState, Player } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import Timer from '@/components/ui/Timer'
 import { useSound } from '@/hooks/useSound'
 import { useHaptic } from '@/hooks/useHaptic'
 
-interface Props { state: LandmarksState; me: Player; socket: Socket<ServerToClientEvents, ClientToServerEvents> }
+interface Props { state: LandmarksState; me: Player; sendAction: (action: import('@/lib/types').GameAction) => void }
 
 const OPTION_COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#eab308']
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 
-export default function LandmarksPlayer({ state, me, socket }: Props) {
+export default function LandmarksPlayer({ state, me, sendAction }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const myAnswer   = state.answers[me.id]
   const q          = state.questions[state.currentIndex]
@@ -40,7 +38,7 @@ export default function LandmarksPlayer({ state, me, socket }: Props) {
     if (myAnswer || state.phase !== 'question') return
     play('select'); haptic(50)
     setSelected(opt)
-    socket.emit('game_action', { type: 'landmarks_answer', answer: opt })
+    sendAction({ type: 'landmarks_answer', answer: opt })
   }
 
   if (state.phase === 'countdown' || state.phase === 'leaderboard') {

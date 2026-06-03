@@ -1,15 +1,13 @@
 'use client'
 import type { RoomPublic, Player } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 
 interface Props {
   room: RoomPublic | null
   me: Player | null
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  emit?: unknown
 }
 
-export default function PlayerLobby({ room, me, socket }: Props) {
+export default function PlayerLobby({ room, me }: Props) {
   if (!room || !me) {
     return (
       <div className="min-h-screen bg-night-900 flex items-center justify-center">

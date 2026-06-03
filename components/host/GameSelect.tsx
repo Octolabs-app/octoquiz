@@ -2,14 +2,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { RoomPublic, GameType, TriviaConfig, TriviaMode, TriviaDifficulty } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
+import type { HostEmit } from '@/lib/host-emit'
 import Scoreboard from '@/components/ui/Scoreboard'
 import { TRIVIA_CATEGORIES } from '@/lib/trivia-config'
 
 interface Props {
-  room:   RoomPublic
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  room: RoomPublic
+  emit: HostEmit
 }
 
 const GAMES: { id: GameType; icon: string; title: string; sub: string; color: string; players: string }[] = [
@@ -41,7 +40,7 @@ const DEFAULT_CONFIG: TriviaConfig = {
   difficulty:    'medium',
 }
 
-export default function GameSelect({ room, socket }: Props) {
+export default function GameSelect({ room, emit }: Props) {
   const [selected,      setSelected]      = useState<GameType | null>(room.currentGame)
   const [triviaConfig,  setTriviaConfig]  = useState<TriviaConfig>(DEFAULT_CONFIG)
   const playerCount = room.players.length
@@ -49,15 +48,15 @@ export default function GameSelect({ room, socket }: Props) {
   function handleSelect(game: GameType) {
     if (game === 'imposter' && playerCount < 3) return
     setSelected(game)
-    socket.emit('select_game', game)
+    emit.selectGame(game)
   }
 
   function handleStart() {
     if (!selected) return
     if (selected === 'trivia') {
-      socket.emit('start_game', triviaConfig)
+      emit.startGame(triviaConfig)
     } else {
-      socket.emit('start_game')
+      emit.startGame()
     }
   }
 

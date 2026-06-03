@@ -3,8 +3,6 @@ import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import type { FlagQuizState, Player } from '@/lib/types'
-import type { Socket } from 'socket.io-client'
-import type { ServerToClientEvents, ClientToServerEvents } from '@/lib/types'
 import Timer from '@/components/ui/Timer'
 import { useSound } from '@/hooks/useSound'
 import { useHaptic } from '@/hooks/useHaptic'
@@ -12,10 +10,10 @@ import { useHaptic } from '@/hooks/useHaptic'
 interface Props {
   state: FlagQuizState
   me: Player
-  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  sendAction: (action: import('@/lib/types').GameAction) => void
 }
 
-export default function FlagQuizPlayer({ state, me, socket }: Props) {
+export default function FlagQuizPlayer({ state, me, sendAction }: Props) {
   const q = state.questions[state.currentIndex]
   const myAnswer = state.answers[me.id]
   const { play } = useSound()
@@ -37,7 +35,7 @@ export default function FlagQuizPlayer({ state, me, socket }: Props) {
     if (myAnswer || state.phase !== 'question') return
     play('select')
     haptic(50)
-    socket.emit('game_action', { type: 'flag_answer', answer: country })
+    sendAction({ type: 'flag_answer', answer: country })
   }
 
   if (state.phase === 'countdown' || state.phase === 'leaderboard') {
