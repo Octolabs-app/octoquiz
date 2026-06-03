@@ -1,11 +1,10 @@
 import wordPairs from '@/data/imposter-words.json'
 import type { DrawImposterState } from '@/lib/types'
 
-const DRAW_SECONDS  = 25      // per drawing round
-const TOTAL_ROUNDS  = 4
-const POINTS_CAUGHT = 500     // each player who fingered the imposter
-const POINTS_SURVIVE = 800    // imposter reward for escaping
-const POINTS_ARTIST = 150     // bonus for a non-imposter who got a vote? no — kept simple
+const TURN_SECONDS   = 15      // each player's turn on the shared board
+const TOTAL_ROUNDS   = 4       // how many times each player draws
+const POINTS_CAUGHT  = 500     // each player who fingered the decoy
+const POINTS_SURVIVE = 800     // decoy reward for escaping
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -21,7 +20,8 @@ export function createDrawImposterGame(
   totalRounds = TOTAL_ROUNDS,
 ): DrawImposterState {
   const pair = shuffle([...wordPairs])[0]
-  const imposterId = playerIds[Math.floor(Math.random() * playerIds.length)]
+  const order = shuffle([...playerIds])
+  const imposterId = order[Math.floor(Math.random() * order.length)]
   return {
     game: 'drawimposter',
     phase: 'reveal',
@@ -30,24 +30,52 @@ export function createDrawImposterGame(
     imposterId,
     realWord: pair.real,
     imposterWord: pair.imposter,
-    drawSeconds: DRAW_SECONDS,
-    roundStartedAt: null,
+    drawerOrder: order,
+    turnIndex: 0,
+    currentDrawer: order[0] ?? '',
+    turnSeconds: TURN_SECONDS,
+    turnStartedAt: null,
     voteCalls: [],
     votes: {},
     caught: null,
   }
 }
 
-export function startDrawing(state: DrawImposterState): DrawImposterState {
-  return { ...state, phase: 'drawing', round: 1, roundStartedAt: Date.now() }
+/** Total number of turns across the whole game. */
+export function totalTurns(state: DrawImposterState): number {
+  return state.totalRounds * state.drawerOrder.length
 }
 
-export function nextDrawRound(state: DrawImposterState): DrawImposterState {
-  return { ...state, round: state.round + 1, roundStartedAt: Date.now() }
+export function startDrawing(state: DrawImposterState): DrawImposterState {
+  return {
+    ...state,
+    phase: 'drawing',
+    turnIndex: 0,
+    round: 1,
+    currentDrawer: state.drawerOrder[0] ?? '',
+    turnStartedAt: Date.now(),
+  }
+}
+
+/** Advance to the next player's turn. Returns done=true when all turns are used. */
+export function advanceTurn(state: DrawImposterState): { state: DrawImposterState; done: boolean } {
+  const next = state.turnIndex + 1
+  if (next >= totalTurns(state)) return { state, done: true }
+  const n = state.drawerOrder.length
+  return {
+    state: {
+      ...state,
+      turnIndex: next,
+      round: Math.floor(next / n) + 1,
+      currentDrawer: state.drawerOrder[next % n] ?? '',
+      turnStartedAt: Date.now(),
+    },
+    done: false,
+  }
 }
 
 export function openDrawVoting(state: DrawImposterState): DrawImposterState {
-  return { ...state, phase: 'voting', votes: {}, roundStartedAt: null }
+  return { ...state, phase: 'voting', votes: {}, turnStartedAt: null }
 }
 
 export function addVoteCall(state: DrawImposterState, playerId: string): DrawImposterState {
@@ -89,10 +117,7 @@ export function resolveDrawVotes(
     points[state.imposterId] = (points[state.imposterId] ?? 0) + POINTS_SURVIVE
   }
 
-  return {
-    state: { ...state, phase: 'finished', caught },
-    points,
-  }
+  return { state: { ...state, phase: 'finished', caught }, points }
 }
 
-export { DRAW_SECONDS, TOTAL_ROUNDS, POINTS_CAUGHT, POINTS_SURVIVE, POINTS_ARTIST }
+export { TURN_SECONDS, TOTAL_ROUNDS, POINTS_CAUGHT, POINTS_SURVIVE }

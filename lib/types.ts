@@ -148,8 +148,12 @@ export interface DrawImposterState {
   imposterId:     string
   realWord:       string
   imposterWord:   string
-  drawSeconds:    number        // seconds per drawing round
-  roundStartedAt: number | null
+  // ── Turn-based shared whiteboard ──
+  drawerOrder:    string[]      // playerIds in turn order
+  turnIndex:      number        // 0-based index over all turns (rounds × players)
+  currentDrawer:  string        // playerId whose turn it is to draw now
+  turnSeconds:    number        // seconds per player's turn
+  turnStartedAt:  number | null
   voteCalls:      string[]      // playerIds requesting an early vote
   votes:          Record<string, string>  // voterId -> suspectId
   caught:         boolean | null

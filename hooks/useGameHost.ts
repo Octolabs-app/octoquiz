@@ -39,7 +39,7 @@ import {
   showLandmarksLeaderboard,
 } from '@/lib/games/landmarks'
 import {
-  createDrawImposterGame, startDrawing, nextDrawRound, openDrawVoting,
+  createDrawImposterGame, startDrawing, advanceTurn, openDrawVoting,
   addVoteCall, shouldStartEarlyVote, submitDrawVote, resolveDrawVotes,
 } from '@/lib/games/draw-imposter'
 import type { DrawStroke } from '@/lib/types'
@@ -58,8 +58,8 @@ export function useGameHost(roomCode: string) {
   const [room, setRoom]           = useState<Room | null>(null)
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [connected, setConnected] = useState(false)
-  // Live drawing strokes for the Decoy game, keyed by playerId (host gallery)
-  const [drawData, setDrawData]   = useState<Record<string, DrawStroke[]>>({})
+  // Strokes on the single shared Decoy whiteboard (all players draw on it in turn)
+  const [drawStrokes, setDrawStrokes] = useState<DrawStroke[]>([])
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const roomRef    = useRef<Room | null>(null)           // always-current ref
@@ -342,13 +342,14 @@ export function useGameHost(roomCode: string) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearTimer, updateGame, setTimer, drawResolve])
 
-  const drawRoundEnd = useCallback(() => {
+  const drawNextTurn = useCallback(() => {
     clearTimer()
     const gs = gameRef.current
     if (!gs || gs.game !== 'drawimposter') return
-    if (gs.round >= gs.totalRounds) { drawOpenVoting(); return }
-    updateGame(nextDrawRound(gs))
-    setTimer(gs.drawSeconds * 1000, drawRoundEnd)
+    const { state, done } = advanceTurn(gs)
+    if (done) { drawOpenVoting(); return }
+    updateGame(state)
+    setTimer(state.turnSeconds * 1000, drawNextTurn)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearTimer, updateGame, setTimer, drawOpenVoting])
 
@@ -357,9 +358,9 @@ export function useGameHost(roomCode: string) {
     if (!gs || gs.game !== 'drawimposter') return
     const state = startDrawing(gs)
     updateGame(state)
-    setTimer(state.drawSeconds * 1000, drawRoundEnd)
+    setTimer(state.turnSeconds * 1000, drawNextTurn)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateGame, setTimer, drawRoundEnd])
+  }, [updateGame, setTimer, drawNextTurn])
 
   // Host TV "Start vote now" button + early-vote majority both land here
   const drawSkipToVote = useCallback(() => {
@@ -397,12 +398,6 @@ export function useGameHost(roomCode: string) {
       updateGame(submitLandmarksAnswer(gs, playerId, action.answer))
       const allAnswered = r.players.every(p => (gameRef.current as typeof gs)?.answers[p.id])
       if (allAnswered) landmarksReveal()
-    } else if (action.type === 'draw' && gs.game === 'drawimposter') {
-      // Strokes are NOT part of game_state (keeps state broadcasts tiny) —
-      // just accumulate per player for the host gallery.
-      setDrawData(prev => ({ ...prev, [playerId]: [...(prev[playerId] ?? []), action.stroke] }))
-    } else if (action.type === 'draw_clear' && gs.game === 'drawimposter') {
-      setDrawData(prev => ({ ...prev, [playerId]: [] }))
     } else if (action.type === 'call_vote' && gs.game === 'drawimposter') {
       if (gs.phase !== 'drawing') return
       const updated = addVoteCall(gs, playerId)
@@ -432,7 +427,11 @@ export function useGameHost(roomCode: string) {
     else if (game === 'imposter') gs = createImposterGame(r.players.map(p => p.id), 3)
     else if (game === 'capitals') gs = await createCapitalsGame()
     else if (game === 'landmarks') gs = await createLandmarksGame()
-    else if (game === 'drawimposter') { setDrawData({}); gs = createDrawImposterGame(r.players.map(p => p.id), 4) }
+    else if (game === 'drawimposter') {
+      setDrawStrokes([])
+      channelRef.current?.send({ type: 'broadcast', event: 'draw_reset', payload: {} })
+      gs = createDrawImposterGame(r.players.map(p => p.id), 4)
+    }
     else return
 
     updateRoom(rr => ({ ...rr, status: 'playing', gameState: gs }))
@@ -460,7 +459,7 @@ export function useGameHost(roomCode: string) {
 
   const nextRound = useCallback(() => {
     clearTimer()
-    setDrawData({})
+    setDrawStrokes([])
     updateRoom(r => ({ ...r, status: 'lobby', currentGame: null, gameState: null }))
     updateGame(null)
   }, [clearTimer, updateRoom, updateGame])
@@ -545,6 +544,10 @@ export function useGameHost(roomCode: string) {
       })
       .on('broadcast', { event: 'next_round' }, () => nextRound())
       .on('broadcast', { event: 'end_game' }, () => endGame())
+      .on('broadcast', { event: 'draw' }, ({ payload }: { payload: { stroke: DrawStroke } }) => {
+        setDrawStrokes(prev => [...prev, payload.stroke])   // shared whiteboard
+      })
+      .on('broadcast', { event: 'draw_reset' }, () => setDrawStrokes([]))
       .subscribe(status => {
         if (status === 'SUBSCRIBED') {
           setConnected(true)
@@ -570,7 +573,7 @@ export function useGameHost(roomCode: string) {
     kickPlayer,
     endGame,
     nextRound,
-    drawData,
+    drawStrokes,
     drawSkipToVote,
   }
 }

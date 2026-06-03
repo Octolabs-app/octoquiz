@@ -41,7 +41,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
 
   const {
     room, gameState, me, connected, kicked, error,
-    join, sendAction, sendReady, emitSelectGame, emitStartGame,
+    join, sendAction, sendReady, sendDraw, drawStrokes, emitSelectGame, emitStartGame,
     emitNextRound, emitEndGame, emitKick,
   } = useGamePlayer(roomCode)
 
@@ -137,7 +137,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
     if (gameState.game === 'imposter')  return <ImposterPlayer  state={gameState} me={me} room={room} sendAction={sendAction} />
     if (gameState.game === 'capitals')  return <CapitalsPlayer  state={gameState} me={me} sendAction={sendAction} />
     if (gameState.game === 'landmarks') return <LandmarksPlayer state={gameState} me={me} sendAction={sendAction} />
-    if (gameState.game === 'drawimposter') return <DrawImposterPlayer state={gameState} me={me} room={room} sendAction={sendAction} />
+    if (gameState.game === 'drawimposter') return <DrawImposterPlayer state={gameState} me={me} room={room} sendAction={sendAction} sendDraw={sendDraw} strokes={drawStrokes} />
   }
 
   return <PlayerLobby room={room} me={me} emit={emit} />

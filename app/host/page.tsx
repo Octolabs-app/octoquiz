@@ -39,7 +39,7 @@ function HostRoom({ roomCode }: { roomCode: string }) {
   const {
     room, gameState, connected,
     selectGame, startGame, kickPlayer, endGame, nextRound,
-    drawData, drawSkipToVote,
+    drawStrokes, drawSkipToVote,
   } = useGameHost(roomCode)
 
   if (!connected || !room) return <ServerWakingScreen variant="host" />
@@ -63,7 +63,7 @@ function HostRoom({ roomCode }: { roomCode: string }) {
     if (gameState.game === 'imposter')  return <ImposterHost  state={gameState} room={room} emit={emit} />
     if (gameState.game === 'capitals')  return <CapitalsHost  state={gameState} room={room} />
     if (gameState.game === 'landmarks') return <LandmarksHost state={gameState} room={room} />
-    if (gameState.game === 'drawimposter') return <DrawImposterHost state={gameState} room={room} drawData={drawData} onSkipToVote={drawSkipToVote} />
+    if (gameState.game === 'drawimposter') return <DrawImposterHost state={gameState} room={room} strokes={drawStrokes} onSkipToVote={drawSkipToVote} />
   }
 
   return <HostLobby room={room} emit={emit} />

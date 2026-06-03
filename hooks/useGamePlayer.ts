@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { supabase, channelName } from '@/lib/supabase'
 import { PLAYER_COLORS, PLAYER_EMOJIS } from '@/lib/types'
-import type { RoomPublic, GameState, GameAction } from '@/lib/types'
+import type { RoomPublic, GameState, GameAction, DrawStroke } from '@/lib/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export interface JoinOptions {
@@ -21,6 +21,8 @@ export function useGamePlayer(roomCode: string) {
   const [connected, setConnected] = useState(false)
   const [kicked,    setKicked]    = useState(false)
   const [error,     setError]     = useState<string | null>(null)
+  // Shared Decoy whiteboard strokes (everyone sees the same board)
+  const [drawStrokes, setDrawStrokes] = useState<DrawStroke[]>([])
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const playerIdRef = useRef<string>('')
@@ -31,6 +33,12 @@ export function useGamePlayer(roomCode: string) {
       event: 'player_action',
       payload: { playerId: playerIdRef.current, action },
     })
+  }, [])
+
+  // Broadcast a stroke to the shared whiteboard (host + all players render it)
+  const sendDraw = useCallback((stroke: DrawStroke) => {
+    setDrawStrokes(prev => [...prev, stroke])   // render my own immediately (self:false)
+    channelRef.current?.send({ type: 'broadcast', event: 'draw', payload: { stroke } })
   }, [])
 
   const sendReady = useCallback(() => {
@@ -106,6 +114,10 @@ export function useGamePlayer(roomCode: string) {
       .on('broadcast', { event: 'player_kicked' }, ({ payload }: { payload: { id: string } }) => {
         if (payload.id === playerId) setKicked(true)
       })
+      .on('broadcast', { event: 'draw' }, ({ payload }: { payload: { stroke: DrawStroke } }) => {
+        setDrawStrokes(prev => [...prev, payload.stroke])
+      })
+      .on('broadcast', { event: 'draw_reset' }, () => setDrawStrokes([]))
       .subscribe(status => {
         if (status === 'SUBSCRIBED') setConnected(true)
         if (status === 'CHANNEL_ERROR') setError('Connection failed — check room code')
@@ -119,7 +131,7 @@ export function useGamePlayer(roomCode: string) {
 
   return {
     room, gameState, me, connected, kicked, error,
-    join, sendAction, sendReady,
+    join, sendAction, sendReady, sendDraw, drawStrokes,
     emitSelectGame, emitStartGame, emitNextRound, emitEndGame, emitKick,
     playerId: playerIdRef.current,
   }

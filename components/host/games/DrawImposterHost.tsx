@@ -6,16 +6,15 @@ import Scoreboard from '@/components/ui/Scoreboard'
 interface Props {
   room: RoomPublic
   state: DrawImposterState
-  drawData: Record<string, DrawStroke[]>
+  strokes: DrawStroke[]
   onSkipToVote: () => void
 }
 
-// ── A single player's live canvas ──────────────────────────────────────────────
-function PlayerCanvas({ strokes, label, color, accent }: {
-  strokes: DrawStroke[]; label: string; color: string; accent?: boolean
+// ── The single shared whiteboard everyone draws on ─────────────────────────────
+function SharedBoard({ strokes, className, style }: {
+  strokes: DrawStroke[]; className?: string; style?: React.CSSProperties
 }) {
   const ref = useRef<HTMLCanvasElement | null>(null)
-
   useEffect(() => {
     const c = ref.current; if (!c) return
     const rect = c.getBoundingClientRect()
@@ -34,19 +33,14 @@ function PlayerCanvas({ strokes, label, color, accent }: {
       ctx.stroke()
     }
   }, [strokes])
-
   return (
-    <div className="flex flex-col">
-      <div className="aspect-[4/3] w-full rounded-xl overflow-hidden"
-        style={{ background: '#0f1628', border: `2px solid ${accent ? color : 'rgba(198,168,124,0.18)'}` }}>
-        <canvas ref={ref} className="w-full h-full" />
-      </div>
-      <p className="text-center text-xs font-bold mt-1.5 truncate" style={{ color }}>{label}</p>
+    <div className={className} style={{ background: '#0f1628', border: '2px solid rgba(198,168,124,0.25)', borderRadius: 16, ...style }}>
+      <canvas ref={ref} className="w-full h-full" style={{ borderRadius: 14 }} />
     </div>
   )
 }
 
-export default function DrawImposterHost({ room, state, drawData, onSkipToVote }: Props) {
+export default function DrawImposterHost({ room, state, strokes, onSkipToVote }: Props) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     if (state.phase !== 'drawing') return
@@ -54,30 +48,28 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
     return () => clearInterval(id)
   }, [state.phase])
 
-  const cols = room.players.length <= 2 ? 2 : room.players.length <= 6 ? 3 : 4
-  const timeLeft = state.roundStartedAt
-    ? Math.max(0, state.drawSeconds - Math.floor((now - state.roundStartedAt) / 1000))
-    : state.drawSeconds
-
-  const gallery = (
-    <div className="grid gap-3 w-full max-w-5xl mx-auto" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-      {room.players.map(p => (
-        <PlayerCanvas key={p.id} strokes={drawData[p.id] ?? []} label={`${p.avatar} ${p.name}`} color={p.color} />
-      ))}
-    </div>
-  )
+  const drawer = room.players.find(p => p.id === state.currentDrawer)
+  const timeLeft = state.turnStartedAt
+    ? Math.max(0, state.turnSeconds - Math.floor((now - state.turnStartedAt) / 1000))
+    : state.turnSeconds
 
   // ── Reveal ──
   if (state.phase === 'reveal') {
     return (
       <div className="min-h-screen bg-night-900 flex flex-col items-center justify-center p-8 no-select">
-        <div className="text-center animate-bounce-in mb-10">
+        <div className="text-center animate-bounce-in mb-8">
           <div className="text-8xl mb-4">🎨</div>
           <h1 className="text-6xl font-black mb-3" style={{ color: '#C6A87C' }}>Decoy</h1>
           <p className="text-white/60 text-2xl">Everyone got a secret word on their phone…</p>
-          <p className="text-white/35 text-lg mt-2">…but <span style={{ color: '#C6A87C' }}>one player&apos;s word is different</span>. Draw it over {state.totalRounds} rounds, then vote out the decoy!</p>
         </div>
-        <div className="text-white/30 text-lg animate-pulse">✏️ Get your pens ready…</div>
+        <div className="glass rounded-2xl p-6 max-w-2xl text-center" style={{ border: '1px solid rgba(198,168,124,0.2)' }}>
+          <p className="text-white/70 text-lg leading-relaxed">
+            🖌️ <b>How to play:</b> Players take <b>turns</b> drawing on <b>one shared whiteboard</b>.
+            Everyone is drawing the <b>same word</b> — except the <span style={{ color: '#C6A87C' }}>decoy</span>, who got a different one.
+            After {state.totalRounds} rounds, <b>vote out</b> whoever&apos;s drawing looks off!
+          </p>
+        </div>
+        <div className="text-white/30 text-lg animate-pulse mt-8">✏️ Get ready — first up: {drawer ? `${drawer.avatar} ${drawer.name}` : '…'}</div>
       </div>
     )
   }
@@ -86,18 +78,19 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
   if (state.phase === 'drawing') {
     return (
       <div className="min-h-screen bg-night-900 flex flex-col p-6 no-select">
-        <div className="flex items-center justify-between mb-5 max-w-5xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-4 max-w-5xl mx-auto w-full">
           <div>
             <p className="text-white/30 uppercase tracking-widest text-sm">Round {state.round}/{state.totalRounds}</p>
-            <h2 className="text-4xl font-black text-white">Draw your word!</h2>
+            <h2 className="text-4xl font-black text-white flex items-center gap-3">
+              {drawer && <span style={{ color: drawer.color }}>{drawer.avatar} {drawer.name}</span>}
+              <span className="text-white/50 text-2xl font-normal">is drawing…</span>
+            </h2>
           </div>
           <div className="flex items-center gap-5">
             {state.voteCalls.length > 0 && (
               <p className="text-red-400/80 text-sm">🗳️ {state.voteCalls.length}/{room.players.length} want to vote</p>
             )}
-            <div className="text-center">
-              <div className={`text-6xl font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{timeLeft}s</div>
-            </div>
+            <div className={`text-6xl font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{timeLeft}s</div>
             <button onClick={onSkipToVote}
               className="rounded-2xl px-6 py-4 text-lg font-black transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg,#C6A87C,#a8894e)', color: '#0B1120' }}>
@@ -105,7 +98,12 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
             </button>
           </div>
         </div>
-        {gallery}
+        <div className="flex-1 max-w-5xl mx-auto w-full flex flex-col">
+          <SharedBoard strokes={strokes} className="flex-1 w-full" />
+          <p className="text-center text-white/30 text-sm mt-3">
+            🖌️ One shared whiteboard — players take turns. Everyone draws the same word… except the decoy.
+          </p>
+        </div>
       </div>
     )
   }
@@ -116,20 +114,22 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
     const tally = (id: string) => Object.values(state.votes).filter(v => v === id).length
     return (
       <div className="min-h-screen bg-night-900 flex flex-col p-6 no-select">
-        <div className="text-center mb-5">
+        <div className="text-center mb-4">
           <h2 className="text-5xl font-black text-white">🗳️ Vote out the Decoy!</h2>
-          <p className="text-white/40 mt-1">{votesIn}/{room.players.length} votes in — look at the drawings and decide</p>
+          <p className="text-white/40 mt-1">{votesIn}/{room.players.length} votes in — study the board and decide on your phone</p>
         </div>
-        <div className="grid gap-3 w-full max-w-5xl mx-auto" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-          {room.players.map(p => (
-            <div key={p.id} className="relative">
-              <PlayerCanvas strokes={drawData[p.id] ?? []} label={`${p.avatar} ${p.name}`} color={p.color} accent={tally(p.id) > 0} />
-              {tally(p.id) > 0 && (
-                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black"
-                  style={{ background: '#C6A87C', color: '#0B1120' }}>{tally(p.id)}</div>
-              )}
-            </div>
-          ))}
+        <div className="flex-1 max-w-5xl mx-auto w-full flex gap-6">
+          <SharedBoard strokes={strokes} className="flex-1" style={{ minHeight: 320 }} />
+          <div className="w-64 flex-shrink-0 space-y-2">
+            {room.players.map(p => (
+              <div key={p.id} className="flex items-center gap-2 rounded-xl px-3 py-2"
+                style={{ background: tally(p.id) > 0 ? `${p.color}22` : 'rgba(255,255,255,0.04)', border: `1px solid ${tally(p.id) > 0 ? p.color : 'transparent'}` }}>
+                <span className="text-xl">{p.avatar}</span>
+                <span className="font-bold text-white flex-1 truncate">{p.name}</span>
+                {tally(p.id) > 0 && <span className="text-sm font-black" style={{ color: '#C6A87C' }}>{tally(p.id)}</span>}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -149,7 +149,7 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
             <span style={{ color: imposter.color }}>{imposter.avatar} {imposter.name}</span> was the decoy!
           </p>
         )}
-        <div className="flex items-center justify-center gap-8 mt-2 glass rounded-2xl px-10 py-5 inline-flex">
+        <div className="flex items-center justify-center gap-8 glass rounded-2xl px-10 py-5 inline-flex">
           <div className="text-center">
             <p className="text-white/40 text-sm">Everyone&apos;s word</p>
             <p className="text-3xl font-black text-white">{state.realWord}</p>
@@ -161,9 +161,12 @@ export default function DrawImposterHost({ room, state, drawData, onSkipToVote }
           </div>
         </div>
       </div>
-      <div className="mt-10 w-full max-w-md">
-        <p className="text-white/40 text-center text-sm mb-3">Scores</p>
-        <Scoreboard players={room.players} />
+      <div className="mt-8 flex items-start gap-8">
+        <SharedBoard strokes={strokes} style={{ width: 360, height: 240 }} />
+        <div className="w-72">
+          <p className="text-white/40 text-center text-sm mb-3">Scores</p>
+          <Scoreboard players={room.players} />
+        </div>
       </div>
     </div>
   )
