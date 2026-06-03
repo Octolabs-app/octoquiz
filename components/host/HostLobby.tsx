@@ -15,13 +15,31 @@ interface Props {
 
 export default function HostLobby({ room, emit }: Props) {
   const [joinUrl, setJoinUrl] = useState('')
+  const [copied, setCopied] = useState(false)
   const tvModeState = useTVModeState()
   const { tvMode, toggleTVMode } = tvModeState
 
   useEffect(() => {
-    const base = window.location.origin
+    // Always share the canonical custom domain (not the *.pages.dev origin),
+    // except on localhost where players need the dev origin to connect.
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
+    const base = isLocal ? window.location.origin : 'https://octoquiz.octolabs.app'
     setJoinUrl(`${base}/join?room=${room.code}`)
   }, [room.code])
+
+  async function copyJoinLink() {
+    try {
+      await navigator.clipboard.writeText(joinUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // Fallback for browsers without clipboard API
+      const ta = document.createElement('textarea')
+      ta.value = joinUrl; document.body.appendChild(ta); ta.select()
+      try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 1800) } catch {}
+      ta.remove()
+    }
+  }
 
   const canStart = room.players.length >= 1
 
@@ -80,8 +98,18 @@ export default function HostLobby({ room, emit }: Props) {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
             className="glass rounded-2xl px-4 py-3 w-full text-center"
             style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1.5">Or type</p>
-            <p className="text-white/70 font-mono text-sm break-all">{joinUrl}</p>
+            <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1.5">Or share this link</p>
+            <p className="text-white/70 font-mono text-sm break-all mb-3">{joinUrl}</p>
+            <button
+              onClick={copyJoinLink}
+              className="w-full rounded-xl py-2.5 text-sm font-bold transition-all active:scale-95"
+              style={{
+                background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(198,168,124,0.15)',
+                border: `1px solid ${copied ? 'rgba(34,197,94,0.5)' : 'rgba(198,168,124,0.4)'}`,
+                color: copied ? '#4ade80' : '#C6A87C',
+              }}>
+              {copied ? '✓ Copied — share it!' : '🔗 Copy invite link'}
+            </button>
           </motion.div>
 
           {/* Instructions */}
