@@ -8,10 +8,15 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
   realtime: { params: { eventsPerSecond: 20 } },
 })
 
-/** Generate a random 4-letter room code */
+/**
+ * Generate a random 5-letter room code.
+ * 24^5 ≈ 8M combinations. With no central registry (serverless host-as-server),
+ * this keeps the odds of two simultaneous rooms colliding on the same channel
+ * negligible even at hundreds of concurrent games.
+ */
 export function generateRoomCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ' // no 0/O or I/1 ambiguity
-  return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
 /** Supabase Realtime channel name for a room */

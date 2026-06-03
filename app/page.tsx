@@ -26,6 +26,7 @@ const GAMES = [
   { icon: '🏙️', label: 'Capitals',    color: '#C6A87C' },
   { icon: '🏛️', label: 'Landmarks',   color: '#C6A87C' },
   { icon: '🕵️', label: 'Imposter',    color: '#C6A87C' },
+  { icon: '🎨', label: 'Decoy',       color: '#C6A87C' },
 ]
 
 export default function HomePage() {
@@ -79,7 +80,7 @@ export default function HomePage() {
             </div>
             <form onSubmit={handleJoin} className="space-y-3">
               <input value={code} onChange={e => setCode(e.target.value.toUpperCase())}
-                placeholder="ROOM CODE" maxLength={4}
+                placeholder="ROOM CODE" maxLength={5}
                 className="w-full rounded-2xl px-5 py-4 text-2xl font-black text-center tracking-[0.3em] outline-none border transition-all uppercase placeholder:text-brand-muted"
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(198,168,124,0.12)', color: '#E8E6E1' }}
                 autoFocus />
@@ -142,7 +143,7 @@ export default function HomePage() {
               </motion.button>
             </motion.div>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
-              className="mt-8 grid grid-cols-5 gap-2">
+              className="mt-8 grid grid-cols-3 gap-2">
               {GAMES.map((g, i) => (
                 <motion.div key={g.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.45 + i * 0.06 }}

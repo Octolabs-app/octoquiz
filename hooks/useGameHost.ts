@@ -38,6 +38,11 @@ import {
   calculateLandmarksPoints, advanceLandmarksQuestion, revealLandmarksAnswer,
   showLandmarksLeaderboard,
 } from '@/lib/games/landmarks'
+import {
+  createDrawImposterGame, startDrawing, nextDrawRound, openDrawVoting,
+  addVoteCall, shouldStartEarlyVote, submitDrawVote, resolveDrawVotes,
+} from '@/lib/games/draw-imposter'
+import type { DrawStroke } from '@/lib/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -53,6 +58,8 @@ export function useGameHost(roomCode: string) {
   const [room, setRoom]           = useState<Room | null>(null)
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [connected, setConnected] = useState(false)
+  // Live drawing strokes for the Decoy game, keyed by playerId (host gallery)
+  const [drawData, setDrawData]   = useState<Record<string, DrawStroke[]>>({})
 
   const channelRef = useRef<RealtimeChannel | null>(null)
   const roomRef    = useRef<Room | null>(null)           // always-current ref
@@ -312,6 +319,55 @@ export function useGameHost(roomCode: string) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearTimer, updateGame, broadcastRoom, setTimer, updateRoom, imposterStartDiscussion])
 
+  // ─ Decoy (drawing imposter) ─
+  const drawResolve = useCallback(() => {
+    clearTimer()
+    const gs = gameRef.current; const r = roomRef.current
+    if (!gs || gs.game !== 'drawimposter' || !r) return
+    const { state, points } = resolveDrawVotes(gs, r.players.map(p => ({ id: p.id, name: p.name })))
+    const updatedPlayers = r.players.map(p => ({ ...p, score: p.score + (points[p.id] ?? 0) }))
+    const nextRoom = { ...r, players: updatedPlayers }
+    roomRef.current = nextRoom; setRoom(nextRoom); broadcastRoom(nextRoom)
+    updateGame(state)
+    setTimer(8000, () => updateRoom(rr => ({ ...rr, status: 'results' })))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearTimer, updateGame, broadcastRoom, setTimer, updateRoom])
+
+  const drawOpenVoting = useCallback(() => {
+    clearTimer()
+    const gs = gameRef.current
+    if (!gs || gs.game !== 'drawimposter') return
+    updateGame(openDrawVoting(gs))
+    setTimer(45_000, drawResolve)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearTimer, updateGame, setTimer, drawResolve])
+
+  const drawRoundEnd = useCallback(() => {
+    clearTimer()
+    const gs = gameRef.current
+    if (!gs || gs.game !== 'drawimposter') return
+    if (gs.round >= gs.totalRounds) { drawOpenVoting(); return }
+    updateGame(nextDrawRound(gs))
+    setTimer(gs.drawSeconds * 1000, drawRoundEnd)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearTimer, updateGame, setTimer, drawOpenVoting])
+
+  const drawStartDrawing = useCallback(() => {
+    const gs = gameRef.current
+    if (!gs || gs.game !== 'drawimposter') return
+    const state = startDrawing(gs)
+    updateGame(state)
+    setTimer(state.drawSeconds * 1000, drawRoundEnd)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateGame, setTimer, drawRoundEnd])
+
+  // Host TV "Start vote now" button + early-vote majority both land here
+  const drawSkipToVote = useCallback(() => {
+    const gs = gameRef.current
+    if (!gs || gs.game !== 'drawimposter' || gs.phase === 'voting' || gs.phase === 'finished') return
+    drawOpenVoting()
+  }, [drawOpenVoting])
+
   // ── Handle player actions ─────────────────────────────────────────────────
   const handleAction = useCallback((playerId: string, action: GameAction) => {
     const gs = gameRef.current; const r = roomRef.current
@@ -341,8 +397,24 @@ export function useGameHost(roomCode: string) {
       updateGame(submitLandmarksAnswer(gs, playerId, action.answer))
       const allAnswered = r.players.every(p => (gameRef.current as typeof gs)?.answers[p.id])
       if (allAnswered) landmarksReveal()
+    } else if (action.type === 'draw' && gs.game === 'drawimposter') {
+      // Strokes are NOT part of game_state (keeps state broadcasts tiny) —
+      // just accumulate per player for the host gallery.
+      setDrawData(prev => ({ ...prev, [playerId]: [...(prev[playerId] ?? []), action.stroke] }))
+    } else if (action.type === 'draw_clear' && gs.game === 'drawimposter') {
+      setDrawData(prev => ({ ...prev, [playerId]: [] }))
+    } else if (action.type === 'call_vote' && gs.game === 'drawimposter') {
+      if (gs.phase !== 'drawing') return
+      const updated = addVoteCall(gs, playerId)
+      updateGame(updated)
+      if (shouldStartEarlyVote(updated, r.players.length)) drawSkipToVote()
+    } else if (action.type === 'drawimposter_vote' && gs.game === 'drawimposter') {
+      const updated = submitDrawVote(gs, playerId, action.targetId)
+      updateGame(updated)
+      const allVoted = r.players.every(p => updated.votes[p.id])
+      if (allVoted) drawResolve()
     }
-  }, [updateGame, triviaReveal, flagReveal, imposterResolve, capitalsReveal, landmarksReveal])
+  }, [updateGame, triviaReveal, flagReveal, imposterResolve, capitalsReveal, landmarksReveal, drawResolve, drawSkipToVote])
 
   // ── Host actions ──────────────────────────────────────────────────────────
   const selectGame = useCallback((game: GameType) => {
@@ -360,6 +432,7 @@ export function useGameHost(roomCode: string) {
     else if (game === 'imposter') gs = createImposterGame(r.players.map(p => p.id), 3)
     else if (game === 'capitals') gs = await createCapitalsGame()
     else if (game === 'landmarks') gs = await createLandmarksGame()
+    else if (game === 'drawimposter') { setDrawData({}); gs = createDrawImposterGame(r.players.map(p => p.id), 4) }
     else return
 
     updateRoom(rr => ({ ...rr, status: 'playing', gameState: gs }))
@@ -371,8 +444,9 @@ export function useGameHost(roomCode: string) {
     else if (game === 'imposter') setTimer(5000, imposterStartDiscussion)
     else if (game === 'capitals') setTimer(2500, capitalsStartQuestion)
     else if (game === 'landmarks') setTimer(2500, landmarksStartQuestion)
+    else if (game === 'drawimposter') setTimer(6000, drawStartDrawing)
   }, [updateRoom, updateGame, setTimer, triviaStartQuestion, flagStartQuestion,
-      imposterStartDiscussion, capitalsStartQuestion, landmarksStartQuestion])
+      imposterStartDiscussion, capitalsStartQuestion, landmarksStartQuestion, drawStartDrawing])
 
   const kickPlayer = useCallback((playerId: string) => {
     channelRef.current?.send({ type: 'broadcast', event: 'player_kicked', payload: { id: playerId } })
@@ -386,6 +460,7 @@ export function useGameHost(roomCode: string) {
 
   const nextRound = useCallback(() => {
     clearTimer()
+    setDrawData({})
     updateRoom(r => ({ ...r, status: 'lobby', currentGame: null, gameState: null }))
     updateGame(null)
   }, [clearTimer, updateRoom, updateGame])
@@ -495,5 +570,7 @@ export function useGameHost(roomCode: string) {
     kickPlayer,
     endGame,
     nextRound,
+    drawData,
+    drawSkipToVote,
   }
 }

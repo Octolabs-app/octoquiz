@@ -17,6 +17,7 @@ const GAMES: { id: GameType; icon: string; title: string; sub: string; color: st
   { id: 'capitals',  icon: '🏙️', title: 'Capital Cities', sub: 'Spot the capital — real city photos', color: '#f59e0b', players: '2–50 players' },
   { id: 'landmarks', icon: '🏛️', title: 'Landmarks',      sub: 'Iconic places from around the world', color: '#ec4899', players: '2–50 players' },
   { id: 'imposter',  icon: '🕵️', title: 'Imposter',       sub: 'Find the spy among you',              color: '#a855f7', players: '3–50 players' },
+  { id: 'drawimposter', icon: '🎨', title: 'Decoy',        sub: 'Draw your word — spot the odd one out', color: '#C6A87C', players: '3–50 players' },
 ]
 
 const MODES: { id: TriviaMode; icon: string; label: string; desc: string; color: string }[] = [
@@ -46,7 +47,7 @@ export default function GameSelect({ room, emit }: Props) {
   const playerCount = room.players.length
 
   function handleSelect(game: GameType) {
-    if (game === 'imposter' && playerCount < 3) return
+    if ((game === 'imposter' || game === 'drawimposter') && playerCount < 3) return
     setSelected(game)
     emit.selectGame(game)
   }
@@ -73,7 +74,7 @@ export default function GameSelect({ room, emit }: Props) {
         {/* Game cards */}
         <div className="grid grid-cols-2 gap-3">
           {GAMES.map(g => {
-            const locked = g.id === 'imposter' && playerCount < 3
+            const locked = (g.id === 'imposter' || g.id === 'drawimposter') && playerCount < 3
             return (
               <button
                 key={g.id}

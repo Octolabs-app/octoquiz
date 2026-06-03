@@ -8,6 +8,7 @@ import FlagQuizPlayer from '@/components/player/games/FlagQuizPlayer'
 import ImposterPlayer from '@/components/player/games/ImposterPlayer'
 import CapitalsPlayer from '@/components/player/games/CapitalsPlayer'
 import LandmarksPlayer from '@/components/player/games/LandmarksPlayer'
+import DrawImposterPlayer from '@/components/player/games/DrawImposterPlayer'
 import PlayerResults from '@/components/player/PlayerResults'
 import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
@@ -136,6 +137,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
     if (gameState.game === 'imposter')  return <ImposterPlayer  state={gameState} me={me} room={room} sendAction={sendAction} />
     if (gameState.game === 'capitals')  return <CapitalsPlayer  state={gameState} me={me} sendAction={sendAction} />
     if (gameState.game === 'landmarks') return <LandmarksPlayer state={gameState} me={me} sendAction={sendAction} />
+    if (gameState.game === 'drawimposter') return <DrawImposterPlayer state={gameState} me={me} room={room} sendAction={sendAction} />
   }
 
   return <PlayerLobby room={room} me={me} emit={emit} />

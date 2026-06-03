@@ -19,7 +19,7 @@ export interface Player {
 
 // ─── Room ────────────────────────────────────────────────────────────────────
 
-export type GameType = 'trivia' | 'flag-quiz' | 'imposter' | 'capitals' | 'landmarks'
+export type GameType = 'trivia' | 'flag-quiz' | 'imposter' | 'capitals' | 'landmarks' | 'drawimposter'
 export type RoomStatus = 'lobby' | 'game-select' | 'playing' | 'results'
 
 export interface Room {
@@ -41,6 +41,7 @@ export type GameState =
   | ImposterState
   | CapitalsState
   | LandmarksState
+  | DrawImposterState
 
 // ─── TRIVIA / BRAIN BLITZ ─────────────────────────────────────────────────────
 export type TriviaMode       = 'classic' | 'speed' | 'sudden-death'
@@ -126,6 +127,34 @@ export interface ImposterRoundResult {
   votes: Record<string, string>
 }
 
+// ─── DECOY (DRAWING IMPOSTER) ─────────────────────────────────────────────────
+export type DrawPhase = 'reveal' | 'drawing' | 'voting' | 'result' | 'finished'
+
+/** One pen stroke. Points are flattened & normalized 0..1: [x0,y0,x1,y1,…]. */
+export interface DrawStroke {
+  id:       string
+  playerId: string
+  round:    number
+  color:    string
+  width:    number
+  points:   number[]
+}
+
+export interface DrawImposterState {
+  game:           'drawimposter'
+  phase:          DrawPhase
+  round:          number        // current drawing round (1..totalRounds)
+  totalRounds:    number        // number of drawing rounds (default 4)
+  imposterId:     string
+  realWord:       string
+  imposterWord:   string
+  drawSeconds:    number        // seconds per drawing round
+  roundStartedAt: number | null
+  voteCalls:      string[]      // playerIds requesting an early vote
+  votes:          Record<string, string>  // voterId -> suspectId
+  caught:         boolean | null
+}
+
 // ─── CAPITAL CITIES ───────────────────────────────────────────────────────────
 export interface CapitalsQuestion {
   id:           string
@@ -204,6 +233,10 @@ export type GameAction =
   | { type: 'imposter_vote';    targetId: string }
   | { type: 'capitals_answer';  answer: string }
   | { type: 'landmarks_answer'; answer: string }
+  | { type: 'draw';             stroke: DrawStroke }
+  | { type: 'draw_clear';       playerId: string }
+  | { type: 'call_vote' }
+  | { type: 'drawimposter_vote'; targetId: string }
 
 // Public room state (safe to send to all clients)
 export type RoomPublic = Omit<Room, 'hostId'>

@@ -10,6 +10,7 @@ import FlagQuizHost from '@/components/host/games/FlagQuizHost'
 import ImposterHost from '@/components/host/games/ImposterHost'
 import CapitalsHost from '@/components/host/games/CapitalsHost'
 import LandmarksHost from '@/components/host/games/LandmarksHost'
+import DrawImposterHost from '@/components/host/games/DrawImposterHost'
 import ResultsScreen from '@/components/host/ResultsScreen'
 import ServerWakingScreen from '@/components/ui/ServerWakingScreen'
 
@@ -38,6 +39,7 @@ function HostRoom({ roomCode }: { roomCode: string }) {
   const {
     room, gameState, connected,
     selectGame, startGame, kickPlayer, endGame, nextRound,
+    drawData, drawSkipToVote,
   } = useGameHost(roomCode)
 
   if (!connected || !room) return <ServerWakingScreen variant="host" />
@@ -61,6 +63,7 @@ function HostRoom({ roomCode }: { roomCode: string }) {
     if (gameState.game === 'imposter')  return <ImposterHost  state={gameState} room={room} emit={emit} />
     if (gameState.game === 'capitals')  return <CapitalsHost  state={gameState} room={room} />
     if (gameState.game === 'landmarks') return <LandmarksHost state={gameState} room={room} />
+    if (gameState.game === 'drawimposter') return <DrawImposterHost state={gameState} room={room} drawData={drawData} onSkipToVote={drawSkipToVote} />
   }
 
   return <HostLobby room={room} emit={emit} />
