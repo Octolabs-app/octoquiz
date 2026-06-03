@@ -3,16 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 /**
- * Shown whenever the Socket.IO connection isn't established yet.
- *
- * The very first request of the evening on Render's free tier triggers
- * a ~30s cold start. Without this screen, players just see a blank page
- * and assume something is broken. With it, they see a friendly progress
- * indicator + an explanation, so they know to wait.
- *
- * For the first 2 seconds we show a quiet spinner (most connections
- * complete fast — no point flashing a scary "server is asleep" message
- * for a normal 200ms handshake). After 2s we escalate the message.
+ * Shown while the browser joins the Supabase Realtime room.
  */
 export default function ServerWakingScreen({
   variant = 'player',
@@ -26,9 +17,9 @@ export default function ServerWakingScreen({
     return () => clearInterval(t)
   }, [])
 
-  const slow  = elapsed >= 2     // start showing the cold-start hint
-  const long  = elapsed >= 10    // remind them this is normal
-  const stuck = elapsed >= 45    // probably actually broken
+  const slow  = elapsed >= 2
+  const long  = elapsed >= 10
+  const stuck = elapsed >= 30
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-night-900 px-6 text-center relative overflow-hidden">
@@ -70,8 +61,8 @@ export default function ServerWakingScreen({
           className="text-2xl font-black text-white mb-2"
         >
           {!slow  && 'Connecting…'}
-          {slow && !long  && '☕ Waking up the server…'}
-          {long && !stuck && '☕ Almost there!'}
+          {slow && !long  && 'Joining the room…'}
+          {long && !stuck && 'Almost there!'}
           {stuck && '😬 Hmm, this is taking a while.'}
         </motion.h2>
 
@@ -89,13 +80,11 @@ export default function ServerWakingScreen({
             <>
               <p className="mb-2">
                 {variant === 'host'
-                  ? "The TV is connecting to OctoQuiz's game server."
-                  : "Your phone is connecting to the game."}
+                  ? "The host screen is opening the game room."
+                  : "Your phone is joining the game room."}
               </p>
               <p className="text-white/40 text-xs">
-                The server takes about <span className="text-purple-400 font-bold">30 seconds</span> to wake up
-                if no one's played recently — that's free hosting for you.
-                It'll be lightning-fast after this.
+                Keep this tab open while OctoQuiz links everyone together.
               </p>
             </>
           )}
