@@ -70,8 +70,21 @@ Verify with a **real 3–4 player session**:
 - [ ] **Single shared whiteboard**: every client (host TV + all phones) shows the
       **identical** board. Strokes are sent via a dedicated `draw` broadcast (+
       `draw_reset`), NOT inside `game_state`.
+- [ ] **ONE stroke per turn (Fake Artist style):** the current drawer may draw a
+      single line, then the turn **auto-passes**. Player locks after one stroke
+      (`drawnThisTurn`, reset on `turnIndex` change) and sends `stroke_done`; host
+      advances on `stroke_done` from the current drawer (700ms delay). A 20s
+      per-turn timer is only a fallback for idle/disconnected drawers. Verify the
+      auto-pass fires on stroke completion and the fallback fires if nobody draws.
+      - ⚠️ **SUSPECTED ISSUE I couldn't fully confirm (synthetic testing was
+        flaky):** the host per-turn countdown may not reset to a full 20s on each
+        auto-pass — verify `turnStartedAt` is updated on every `advanceTurn` and
+        that `DrawImposterHost`'s `timeLeft` resets per turn, so the fallback
+        never fires early and skip a player who is still thinking. (Confirmed
+        working: a drawn line renders on the host board + all players, and turns
+        rotate Ben→Ana→Cid; this note is only about the timer display/fallback.)
 - [ ] **Turn-based**: only `currentDrawer` can draw; others see "X is drawing… watch
-      the board". Turns rotate through `drawerOrder` for `totalRounds` (4) rounds.
+      the board". Turns rotate through `drawerOrder` for `totalRounds` (3) rounds.
 - [ ] **Different words**: crew share `realWord`; the decoy gets `imposterWord`.
 - [ ] **Early vote**: a player "Call vote" → when a **majority** call, voting opens;
       host TV "Start vote" also works (`drawSkipToVote`).
