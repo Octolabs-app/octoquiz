@@ -1,4 +1,5 @@
 import wordPairs from '@/data/imposter-words.json'
+import { pickFresh } from '@/lib/no-repeat'
 import type { ImposterState, ImposterRoundResult } from '@/lib/types'
 
 const DISCUSSION_SECONDS = 90
@@ -15,7 +16,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function createImposterGame(playerIds: string[], totalRounds = 3): ImposterState {
-  const pair = shuffle([...wordPairs])[0]
+  const pair = pickFresh('imposter', wordPairs, 1, p => p.real)[0]
   const imposterId = playerIds[Math.floor(Math.random() * playerIds.length)]
 
   return {
@@ -107,7 +108,7 @@ export function nextImposterRound(
   state: ImposterState,
   playerIds: string[],
 ): ImposterState {
-  const pair = shuffle([...wordPairs])[0]
+  const pair = pickFresh('imposter', wordPairs, 1, p => p.real)[0]
   const imposterId = playerIds[Math.floor(Math.random() * playerIds.length)]
 
   return {

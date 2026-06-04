@@ -1,4 +1,5 @@
 import countries from '@/data/countries.json'
+import { pickFresh } from '@/lib/no-repeat'
 import type { FlagQuizState, FlagQuizQuestion } from '@/lib/types'
 
 const TIME_LIMIT = 15
@@ -23,7 +24,7 @@ function pickOptions(correct: string, count = 4): string[] {
 }
 
 export function createFlagQuizGame(questionCount = 15): FlagQuizState {
-  const pool = shuffle([...countries]).slice(0, questionCount)
+  const pool = pickFresh('flags', countries, questionCount, c => c.code)
   const questions: FlagQuizQuestion[] = pool.map(c => ({
     countryCode: c.code,
     countryName: c.name,

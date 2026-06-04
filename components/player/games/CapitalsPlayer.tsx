@@ -76,7 +76,7 @@ export default function CapitalsPlayer({ state, me, sendAction }: Props) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-white/30 text-xs uppercase tracking-wider">Capital {state.currentIndex + 1}/{state.questions.length}</p>
-          <p className="text-white/50 text-sm font-medium">Which country? 🌍</p>
+          <p className="text-white/50 text-sm font-medium">Pick the capital 🌍</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-bold text-white/60">{me.score.toLocaleString()} pts</span>
@@ -84,22 +84,13 @@ export default function CapitalsPlayer({ state, me, sendAction }: Props) {
         </div>
       </div>
 
-      {/* City image */}
+      {/* Question */}
       <AnimatePresence mode="wait">
-        <motion.div key={`img-${state.currentIndex}`} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-          className="relative rounded-2xl overflow-hidden mb-4 flex-shrink-0" style={{ height: '40vw', maxHeight: '180px', minHeight: '120px' }}>
-          {q.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={q.imageUrl} alt={q.city} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-blue-900/30 flex items-center justify-center"><span className="text-5xl">🏙️</span></div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          {isRevealed && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 left-3">
-              <span className="text-white font-black text-lg drop-shadow">📍 {q.city}</span>
-            </motion.div>
-          )}
+        <motion.div key={`q-${state.currentIndex}`} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+          className="rounded-2xl mb-4 p-6 text-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(198,168,124,0.18)' }}>
+          <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-2">What is the capital of</p>
+          <h2 className="text-3xl font-black" style={{ color: '#C6A87C' }}>{q.country}?</h2>
         </motion.div>
       </AnimatePresence>
 
@@ -108,7 +99,7 @@ export default function CapitalsPlayer({ state, me, sendAction }: Props) {
         {isRevealed && (
           <motion.div initial={{ scale: 0.75, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.75, opacity: 0 }}
             className={`rounded-2xl p-4 text-center mb-4 text-xl font-black ${myAnswer?.correct ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-            {myAnswer?.correct ? '✅ Correct!' : myAnswer ? `❌ It's ${q.country}` : "⏱️ Time's up!"}
+            {myAnswer?.correct ? '✅ Correct!' : myAnswer ? `❌ It's ${q.capital}` : "⏱️ Time's up!"}
           </motion.div>
         )}
       </AnimatePresence>
@@ -125,7 +116,7 @@ export default function CapitalsPlayer({ state, me, sendAction }: Props) {
       {/* Options */}
       <div className="grid grid-cols-2 gap-2.5 flex-1">
         {q.options.map((opt, i) => {
-          const isCorrect = opt === q.country
+          const isCorrect = opt === q.capital
           const isMyPick  = myAnswer?.answer === opt || selected === opt
           const locked    = !!myAnswer || state.phase !== 'question'
 

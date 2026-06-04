@@ -1,4 +1,5 @@
 import LANDMARKS, { ALL_LANDMARK_COUNTRIES, ALL_LANDMARK_NAMES } from '@/data/landmarks'
+import { pickFresh } from '@/lib/no-repeat'
 import type { LandmarksState, LandmarksQuestion } from '@/lib/types'
 
 const TIME_LIMIT = 25   // slightly more time — landmarks can be trickier
@@ -30,7 +31,7 @@ async function fetchLandmarkImage(wikiPage: string): Promise<string> {
 }
 
 export async function createLandmarksGame(questionCount = 12): Promise<LandmarksState> {
-  const pool = shuffle([...LANDMARKS]).slice(0, questionCount)
+  const pool = pickFresh('landmarks', LANDMARKS, questionCount, l => l.name)
 
   const imageUrls = await Promise.all(
     pool.map(l => fetchLandmarkImage(l.wikiPage))

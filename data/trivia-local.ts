@@ -344,6 +344,18 @@ const bank: LocalBank = {
     { q: 'What is the most widely spoken language in Mauritius?', o: ['English','French','Hindi','Mauritian Creole'], a: 3 },
     { q: 'Which Mauritian sugar company is one of the largest employers on the island?', o: ['Medine','Rogers','Alteo','Omnicane'], a: 2 },
     { q: 'The Seven Coloured Earths is a famous natural wonder in which district?', o: ['Savanne','Rivière Noire','Grand Port','Flacq'], a: 1 },
+    { q: 'Who was the first Prime Minister of Mauritius?', o: ['Sir Anerood Jugnauth','Sir Seewoosagur Ramgoolam','Navin Ramgoolam','Paul Bérenger'], a: 1 },
+    { q: 'In which year did Mauritius become a republic?', o: ['1968','1982','1992','2002'], a: 2 },
+    { q: 'Which traditional music and dance is iconic to Mauritius?', o: ['Reggae','Sega','Maloya','Zouk'], a: 1 },
+    { q: 'Le Morne Brabant, a UNESCO site, is associated with which history?', o: ['Dutch trade','Runaway slaves (maroons)','French royalty','Pirate treasure'], a: 1 },
+    { q: 'Mauritius lies east of which large island?', o: ['Sri Lanka','Madagascar','Sumatra','Zanzibar'], a: 1 },
+    { q: 'Which island is an autonomous outer region of the Republic of Mauritius?', o: ['Réunion','Rodrigues','Mayotte','Agalega'], a: 1 },
+    { q: 'Aapravasi Ghat in Port Louis was historically a depot for what?', o: ['Spice trade','Indentured labourers','A naval base','Sugar export'], a: 1 },
+    { q: 'The Seven Coloured Earths are located near which village?', o: ['Chamarel','Flic en Flac','Grand Baie','Souillac'], a: 0 },
+    { q: 'Trou aux Cerfs, a dormant volcano, is located in which town?', o: ['Curepipe','Vacoas','Quatre Bornes','Beau Bassin'], a: 0 },
+    { q: 'Which endemic bird of prey was famously saved from near-extinction in Mauritius?', o: ['Mauritius Kestrel','Pink Pigeon','Echo Parakeet','Flamingo'], a: 0 },
+    { q: 'How many horizontal bands of colour are on the flag of Mauritius?', o: ['Three','Four','Five','Two'], a: 1 },
+    { q: 'Mauritius international airport is named after which national figure?', o: ['Sir S. Ramgoolam','Sir A. Jugnauth','Paul Bérenger','Navin Ramgoolam'], a: 0 },
   ],
 }
 

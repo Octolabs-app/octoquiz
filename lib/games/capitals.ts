@@ -1,4 +1,5 @@
-import CAPITALS, { ALL_CAPITAL_COUNTRIES } from '@/data/capitals'
+import CAPITALS, { ALL_CAPITAL_CITIES } from '@/data/capitals'
+import { pickFresh } from '@/lib/no-repeat'
 import type { CapitalsState, CapitalsQuestion } from '@/lib/types'
 
 const TIME_LIMIT = 20
@@ -14,41 +15,25 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function pickCountryOptions(correct: string): string[] {
-  const others = ALL_CAPITAL_COUNTRIES.filter(c => c !== correct)
+// Wrong-answer cities (distractors) for "What is the capital of X?"
+function pickCityOptions(correctCity: string): string[] {
+  const others = ALL_CAPITAL_CITIES.filter(c => c !== correctCity)
   const wrong  = shuffle(others).slice(0, 3)
-  return shuffle([correct, ...wrong])
+  return shuffle([correctCity, ...wrong])
 }
 
-/** Fetch Wikipedia thumbnail for a capital city */
-async function fetchCapitalImage(wikiPage: string): Promise<string> {
-  try {
-    const url  = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiPage)}`
-    const res  = await fetch(url, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return ''
-    const data = await res.json()
-    // Prefer larger original image, fall back to thumbnail
-    return data.originalimage?.source ?? data.thumbnail?.source ?? ''
-  } catch { return '' }
-}
-
+// Text quiz: "What is the capital of {country}?" — 4 city options, no images.
 export async function createCapitalsGame(questionCount = 12): Promise<CapitalsState> {
-  const pool = shuffle([...CAPITALS]).slice(0, questionCount)
-
-  // Fetch all images in parallel
-  const imageUrls = await Promise.all(
-    pool.map(c => fetchCapitalImage(c.wikiPage))
-  )
+  const pool = pickFresh('capitals', CAPITALS, questionCount, c => c.city)
 
   const questions: CapitalsQuestion[] = pool.map((c, i) => {
-    const options = pickCountryOptions(c.country)
+    const options = pickCityOptions(c.city)
     return {
       id:           `c${i}`,
-      city:         c.city,
       country:      c.country,
-      imageUrl:     imageUrls[i],
+      capital:      c.city,
       options,
-      correctIndex: options.indexOf(c.country),
+      correctIndex: options.indexOf(c.city),
     }
   })
 
@@ -77,7 +62,7 @@ export function submitCapitalsAnswer(
 
   const q       = state.questions[state.currentIndex]
   const timeMs  = state.startedAt ? Date.now() - state.startedAt : TIME_LIMIT * 1000
-  const correct = answer === q.country
+  const correct = answer === q.capital
 
   return {
     ...state,

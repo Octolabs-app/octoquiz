@@ -162,10 +162,9 @@ export interface DrawImposterState {
 // ─── CAPITAL CITIES ───────────────────────────────────────────────────────────
 export interface CapitalsQuestion {
   id:           string
-  city:         string
-  country:      string
-  imageUrl:     string      // Wikipedia CDN thumbnail
-  options:      string[]    // 4 country names
+  country:      string      // the country being asked about
+  capital:      string      // the correct capital city
+  options:      string[]    // 4 candidate city names
   correctIndex: number
 }
 

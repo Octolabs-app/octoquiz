@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useGamePlayer } from '@/hooks/useGamePlayer'
 import PlayerLobby from '@/components/player/PlayerLobby'
@@ -38,6 +38,9 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
   const [avatar, setAvatar] = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('playerAvatar') ?? '🦑' : '🦑')
   const [joined, setJoined] = useState(false)
   const [formError, setFormError] = useState('')
+  // Only the name that was cached from the home screen triggers auto-join.
+  // (Live typing must NOT auto-join, or you'd join after the first keystroke.)
+  const cachedName = useRef(typeof window !== 'undefined' ? sessionStorage.getItem('playerName') ?? '' : '')
 
   const {
     room, gameState, me, connected, kicked, error,
@@ -45,13 +48,13 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
     emitNextRound, emitEndGame, emitKick,
   } = useGamePlayer(roomCode)
 
-  // Auto-join if we have cached name from home page
+  // Auto-join ONLY if a name was cached from the home page (not while typing)
   useEffect(() => {
-    if (connected && !joined && name.trim()) {
-      join({ name: name.trim(), avatar })
+    if (connected && !joined && cachedName.current.trim()) {
+      join({ name: cachedName.current.trim(), avatar })
       setJoined(true)
     }
-  }, [connected, joined, name, avatar, join])
+  }, [connected, joined, avatar, join])
 
   // Kicked
   useEffect(() => { if (kicked) router.push('/') }, [kicked, router])

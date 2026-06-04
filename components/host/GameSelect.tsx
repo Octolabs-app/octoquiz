@@ -14,7 +14,7 @@ interface Props {
 const GAMES: { id: GameType; icon: string; title: string; sub: string; color: string; players: string }[] = [
   { id: 'trivia',    icon: '🧠', title: 'Brain Blitz',    sub: 'Trivia · 12 categories · 3 modes',    color: '#3b82f6', players: '1–50 players' },
   { id: 'flag-quiz', icon: '🏳️', title: 'Flag Quiz',      sub: 'Guess countries from flags',          color: '#22c55e', players: '2–50 players' },
-  { id: 'capitals',  icon: '🏙️', title: 'Capital Cities', sub: 'Spot the capital — real city photos', color: '#f59e0b', players: '2–50 players' },
+  { id: 'capitals',  icon: '🏙️', title: 'Capital Cities', sub: 'Name the capital — quick-fire quiz',      color: '#f59e0b', players: '2–50 players' },
   { id: 'landmarks', icon: '🏛️', title: 'Landmarks',      sub: 'Iconic places from around the world', color: '#ec4899', players: '2–50 players' },
   { id: 'imposter',  icon: '🕵️', title: 'Imposter',       sub: 'Find the spy among you',              color: '#a855f7', players: '3–50 players' },
   { id: 'drawimposter', icon: '🎨', title: 'Decoy',        sub: 'Draw your word — spot the odd one out', color: '#C6A87C', players: '3–50 players' },

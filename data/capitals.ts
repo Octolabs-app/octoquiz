@@ -81,3 +81,5 @@ export default CAPITALS
 
 /** All unique country names for generating wrong-answer options */
 export const ALL_CAPITAL_COUNTRIES = [...new Set(CAPITALS.map(c => c.country))]
+/** All unique city names — used as distractor options for "capital of X?" */
+export const ALL_CAPITAL_CITIES    = [...new Set(CAPITALS.map(c => c.city))]

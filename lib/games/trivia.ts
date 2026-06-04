@@ -39,6 +39,7 @@ const OPENTDB_CATEGORY_MAP: Record<string, number | null> = {
   'Pop Culture': null,    // no exact match — use local
   'Food & Cuisine': null, // no OpenTDB category — use local
   'World Landmarks': null,// no OpenTDB category — use local
+  'Mauritius': null,      // local-only — OpenTDB has no Mauritius category
   'Mixed': null,          // random — no category filter
 }
 
@@ -200,8 +201,9 @@ export async function createTriviaGame(cfg: Partial<TriviaConfig> = {}): Promise
   const config: TriviaConfig = { ...DEFAULT_CONFIG, ...cfg }
   const { category, mode, questionCount, difficulty } = config
 
-  // Local-only categories skip the OpenTDB call entirely
-  const localOnly = OPENTDB_CATEGORY_MAP[category] === null && category !== 'Mixed'
+  // Local-only categories skip the OpenTDB call entirely.
+  // (Any category without a real OpenTDB id — null OR not in the map — is local.)
+  const localOnly = !OPENTDB_CATEGORY_MAP[category] && category !== 'Mixed'
   const remote = localOnly ? null : await fetchOpenTDB(questionCount, category, difficulty)
   const questions = (remote && remote.length > 0)
     ? remote

@@ -1,6 +1,7 @@
 // Decoy uses its own list of simple, single-word, easy-to-draw pairs
 // (the verbal Imposter game keeps the longer location-style words).
 import wordPairs from '@/data/decoy-words.json'
+import { pickFresh } from '@/lib/no-repeat'
 import type { DrawImposterState } from '@/lib/types'
 
 const TURN_SECONDS   = 15      // each player's turn on the shared board
@@ -21,7 +22,7 @@ export function createDrawImposterGame(
   playerIds: string[],
   totalRounds = TOTAL_ROUNDS,
 ): DrawImposterState {
-  const pair = shuffle([...wordPairs])[0]
+  const pair = pickFresh('decoy', wordPairs, 1, p => p.real)[0]
   const order = shuffle([...playerIds])
   const imposterId = order[Math.floor(Math.random() * order.length)]
   return {
