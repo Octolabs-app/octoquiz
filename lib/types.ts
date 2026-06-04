@@ -238,6 +238,7 @@ export type GameAction =
   | { type: 'landmarks_answer'; answer: string }
   | { type: 'draw';             stroke: DrawStroke }
   | { type: 'draw_clear';       playerId: string }
+  | { type: 'stroke_done' }     // current drawer finished their single line → pass turn
   | { type: 'call_vote' }
   | { type: 'drawimposter_vote'; targetId: string }
 

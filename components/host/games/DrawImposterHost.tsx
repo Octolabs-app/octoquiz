@@ -64,9 +64,9 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
         </div>
         <div className="glass rounded-2xl p-6 max-w-2xl text-center" style={{ border: '1px solid rgba(198,168,124,0.2)' }}>
           <p className="text-white/70 text-lg leading-relaxed">
-            🖌️ <b>How to play:</b> Players take <b>turns</b> drawing on <b>one shared whiteboard</b>.
+            🖌️ <b>How to play:</b> Players take turns adding <b>ONE line each</b> to <b>one shared whiteboard</b>.
             Everyone is drawing the <b>same word</b> — except the <span style={{ color: '#C6A87C' }}>decoy</span>, who got a different one.
-            After {state.totalRounds} rounds, <b>vote out</b> whoever&apos;s drawing looks off!
+            After {state.totalRounds} rounds of lines, <b>vote out</b> whoever&apos;s lines look off!
           </p>
         </div>
         <div className="text-white/30 text-lg animate-pulse mt-8">✏️ Get ready — first up: {drawer ? `${drawer.avatar} ${drawer.name}` : '…'}</div>
@@ -83,7 +83,7 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
             <p className="text-white/30 uppercase tracking-widest text-sm">Round {state.round}/{state.totalRounds}</p>
             <h2 className="text-4xl font-black text-white flex items-center gap-3">
               {drawer && <span style={{ color: drawer.color }}>{drawer.avatar} {drawer.name}</span>}
-              <span className="text-white/50 text-2xl font-normal">is drawing…</span>
+              <span className="text-white/50 text-2xl font-normal">is drawing a line…</span>
             </h2>
           </div>
           <div className="flex items-center gap-5">
@@ -101,7 +101,7 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
         <div className="flex-1 max-w-5xl mx-auto w-full flex flex-col">
           <SharedBoard strokes={strokes} className="flex-1 w-full" />
           <p className="text-center text-white/30 text-sm mt-3">
-            🖌️ One shared whiteboard — players take turns. Everyone draws the same word… except the decoy.
+            🖌️ One line each, one shared board. Everyone draws the same word… except the decoy.
           </p>
         </div>
       </div>

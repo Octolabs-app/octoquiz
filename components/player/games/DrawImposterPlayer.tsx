@@ -24,12 +24,17 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
   const [width, setWidth] = useState(4)
   const [voted, setVoted] = useState<string | null>(null)
   const [calledVote, setCalledVote] = useState(false)
+  const [drawnThisTurn, setDrawnThisTurn] = useState(false)
   const { haptic } = useHaptic()
 
   const isImposter = state.imposterId === me.id
   const myWord     = isImposter ? state.imposterWord : state.realWord
   const isMyTurn   = state.phase === 'drawing' && state.currentDrawer === me.id
+  const canDraw    = isMyTurn && !drawnThisTurn   // one single line per turn
   const drawer     = room.players.find(p => p.id === state.currentDrawer)
+
+  // Reset the "drawn this turn" lock whenever the turn changes
+  useEffect(() => { setDrawnThisTurn(false) }, [state.turnIndex])
 
   // ── Canvas render of the shared board ────────────────────────────────────────
   const redraw = useCallback(() => {
@@ -74,12 +79,12 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
     return [(e.clientX - rect.left) / rect.width, (e.clientY - rect.top) / rect.height]
   }
   function onDown(e: React.PointerEvent) {
-    if (!isMyTurn) return
+    if (!canDraw) return
     e.preventDefault(); drawing.current = true; cur.current = norm(e)
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
   }
   function onMove(e: React.PointerEvent) {
-    if (!drawing.current || !isMyTurn) return
+    if (!drawing.current || !canDraw) return
     const [x, y] = norm(e); const last = cur.current; cur.current = [...last, x, y]
     const ctx = ctxRef.current, c = canvasRef.current
     if (ctx && c) {
@@ -94,8 +99,11 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
   function onUp() {
     if (!drawing.current) return
     drawing.current = false
-    if (cur.current.length >= 4 && isMyTurn) {
+    if (cur.current.length >= 4 && canDraw) {
       sendDraw({ id: `${me.id}-${strokeSeq++}`, playerId: me.id, round: state.round, color, width, points: cur.current })
+      setDrawnThisTurn(true)            // one line only
+      sendAction({ type: 'stroke_done' }) // tell host to pass to the next player
+      haptic(30)
     }
     cur.current = []
   }
@@ -120,8 +128,8 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
             <p className="text-4xl font-black" style={{ color: '#C6A87C' }}>{myWord}</p>
           </div>
           <div className="glass rounded-2xl p-4 text-sm text-white/55 leading-relaxed text-left">
-            🖌️ You&apos;ll take <b>turns</b> drawing this on <b>one shared whiteboard</b> (watch the TV).
-            Everyone has the same word… but <b>one player&apos;s is different</b>. Draw carefully — then vote out the odd one!
+            🖌️ Players take turns adding <b>ONE line each</b> to <b>one shared whiteboard</b> (watch the TV).
+            Everyone has the same word… but <b>one player&apos;s is different</b>. Spot the odd lines — then vote out the decoy!
           </div>
         </div>
       </div>
@@ -145,8 +153,10 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
         </div>
 
         <div className="mb-2 px-1">
-          {isMyTurn ? (
-            <p className="text-sm font-bold text-green-400">✏️ Your turn — draw on the shared board!</p>
+          {canDraw ? (
+            <p className="text-sm font-bold text-green-400">✏️ Your turn — draw ONE line!</p>
+          ) : isMyTurn ? (
+            <p className="text-sm font-bold text-white/60">✓ Line drawn — passing to the next player…</p>
           ) : (
             <p className="text-sm text-white/50">👀 {drawer ? `${drawer.avatar} ${drawer.name}` : 'Someone'} is drawing… watch the board</p>
           )}
@@ -155,10 +165,10 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
         <canvas ref={canvasRef}
           onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
           className="flex-1 w-full rounded-2xl touch-none"
-          style={{ background: '#0f1628', border: `1px solid ${isMyTurn ? '#22c55e' : 'rgba(198,168,124,0.2)'}`, opacity: isMyTurn ? 1 : 0.95 }} />
+          style={{ background: '#0f1628', border: `1px solid ${canDraw ? '#22c55e' : 'rgba(198,168,124,0.2)'}`, opacity: canDraw ? 1 : 0.95 }} />
 
-        {/* Tools — only while it's your turn */}
-        {isMyTurn ? (
+        {/* Tools — only while you may draw your line */}
+        {canDraw ? (
           <div className="flex items-center gap-2 mt-2 px-1">
             <div className="flex gap-1.5 flex-1 overflow-x-auto">
               {PALETTE.map(c => (

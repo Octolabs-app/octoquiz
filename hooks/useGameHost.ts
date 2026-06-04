@@ -398,6 +398,12 @@ export function useGameHost(roomCode: string) {
       updateGame(submitLandmarksAnswer(gs, playerId, action.answer))
       const allAnswered = r.players.every(p => (gameRef.current as typeof gs)?.answers[p.id])
       if (allAnswered) landmarksReveal()
+    } else if (action.type === 'stroke_done' && gs.game === 'drawimposter') {
+      // One-stroke-per-turn: as soon as the current drawer finishes their line,
+      // pass to the next player (short delay so everyone sees the line land).
+      if (gs.phase === 'drawing' && playerId === gs.currentDrawer) {
+        setTimer(700, drawNextTurn)
+      }
     } else if (action.type === 'call_vote' && gs.game === 'drawimposter') {
       if (gs.phase !== 'drawing') return
       const updated = addVoteCall(gs, playerId)
@@ -409,7 +415,7 @@ export function useGameHost(roomCode: string) {
       const allVoted = r.players.every(p => updated.votes[p.id])
       if (allVoted) drawResolve()
     }
-  }, [updateGame, triviaReveal, flagReveal, imposterResolve, capitalsReveal, landmarksReveal, drawResolve, drawSkipToVote])
+  }, [updateGame, triviaReveal, flagReveal, imposterResolve, capitalsReveal, landmarksReveal, drawResolve, drawSkipToVote, drawNextTurn, setTimer])
 
   // ── Host actions ──────────────────────────────────────────────────────────
   const selectGame = useCallback((game: GameType) => {

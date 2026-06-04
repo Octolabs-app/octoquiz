@@ -4,8 +4,8 @@ import wordPairs from '@/data/decoy-words.json'
 import { pickFresh } from '@/lib/no-repeat'
 import type { DrawImposterState } from '@/lib/types'
 
-const TURN_SECONDS   = 15      // each player's turn on the shared board
-const TOTAL_ROUNDS   = 4       // how many times each player draws
+const TURN_SECONDS   = 20      // fallback: auto-pass if a drawer is idle this long
+const TOTAL_ROUNDS   = 3       // how many lines each player draws (one per turn)
 const POINTS_CAUGHT  = 500     // each player who fingered the decoy
 const POINTS_SURVIVE = 800     // decoy reward for escaping
 
