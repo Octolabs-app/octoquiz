@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { generateRoomCode } from '@/lib/supabase'
+import { generateRoomCode } from '@/lib/room-code'
 import AdBanner from '@/components/ui/AdBanner'
 
 const OCTOLABS_LOGO = (

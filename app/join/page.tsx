@@ -44,8 +44,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
 
   const {
     room, gameState, me, connected, kicked, error,
-    join, sendAction, sendReady, sendDraw, drawStrokes, emitSelectGame, emitStartGame,
-    emitNextRound, emitEndGame, emitKick,
+    join, sendAction, sendReady, sendDraw, drawStrokes,
   } = useGamePlayer(roomCode)
 
   // Auto-join ONLY if a name was cached from the home page (not while typing)
@@ -61,11 +60,6 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
 
   // Build emit adapter for existing components
   const emit = {
-    selectGame:  emitSelectGame,
-    startGame:   emitStartGame,
-    nextRound:   emitNextRound,
-    endGame:     emitEndGame,
-    kickPlayer:  emitKick,
     gameAction:  sendAction,
     playerReady: sendReady,
   }

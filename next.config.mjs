@@ -1,7 +1,12 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // OctoQuiz is a fully client-side SPA (Supabase Realtime, no server routes),
-  // so we ship a static export and host it on Cloudflare Pages — no Node server.
+  // OctoQuiz ships as static Next.js assets. Cloudflare Workers serves these
+  // assets and handles room WebSockets through a Durable Object relay.
   output: 'export',
   reactStrictMode: false,
   images: {
@@ -10,6 +15,9 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'flagcdn.com', pathname: '/**' },
     ],
+  },
+  turbopack: {
+    root: __dirname,
   },
 }
 

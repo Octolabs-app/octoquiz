@@ -4,11 +4,16 @@
   "private": true,
   "description": "OctoQuiz — multiplayer party trivia by Octolabs",
   "homepage": "https://octoquiz.octolabs.app",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "tsx watch server.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production tsx server.ts",
-    "lint": "next lint",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv worker-configuration.d.ts",
+    "lint": "eslint .",
     "apk:export": "node scripts/build-apk.mjs",
     "apk:init": "npx cap add android",
     "apk:sync": "npm run apk:export && npx cap sync android",
@@ -21,32 +26,31 @@
     "@capacitor/core": "^6.2.0",
     "@capacitor/haptics": "^6.0.2",
     "@capacitor/status-bar": "^6.0.2",
-    "@supabase/supabase-js": "^2.107.0",
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
-    "next": "^15.1.0",
+    "next": "^16.2.9",
     "qrcode.react": "^4.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0",
-    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.0.1",
     "cross-env": "^7.0.3",
     "eslint": "^9",
-    "eslint-config-next": "^15.1.0",
-    "postcss": "^8",
+    "eslint-config-next": "^16.2.9",
+    "postcss": "8.5.15",
     "tailwindcss": "^3.4.1",
-    "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.97.0"
+  },
+  "overrides": {
+    "postcss": "8.5.15"
   }
 }

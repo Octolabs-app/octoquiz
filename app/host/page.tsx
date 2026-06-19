@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useGameHost } from '@/hooks/useGameHost'
-import { generateRoomCode } from '@/lib/supabase'
+import { generateRoomCode } from '@/lib/room-code'
 import type { TriviaConfig } from '@/lib/types'
 import HostLobby from '@/components/host/HostLobby'
 import GameSelect from '@/components/host/GameSelect'

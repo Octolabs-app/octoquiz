@@ -3,16 +3,10 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 /**
- * Shown whenever the Socket.IO connection isn't established yet.
+ * Shown whenever the room relay connection is not established yet.
  *
- * The very first request of the evening on Render's free tier triggers
- * a ~30s cold start. Without this screen, players just see a blank page
- * and assume something is broken. With it, they see a friendly progress
- * indicator + an explanation, so they know to wait.
- *
- * For the first 2 seconds we show a quiet spinner (most connections
- * complete fast — no point flashing a scary "server is asleep" message
- * for a normal 200ms handshake). After 2s we escalate the message.
+ * Most Cloudflare relay connections complete quickly. If a client cannot
+ * connect, we show a useful retry path.
  */
 export default function ServerWakingScreen({
   variant = 'player',
@@ -26,9 +20,9 @@ export default function ServerWakingScreen({
     return () => clearInterval(t)
   }, [])
 
-  const slow  = elapsed >= 2     // start showing the cold-start hint
-  const long  = elapsed >= 10    // remind them this is normal
-  const stuck = elapsed >= 45    // probably actually broken
+  const slow  = elapsed >= 2
+  const long  = elapsed >= 10
+  const stuck = elapsed >= 25
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-night-900 px-6 text-center relative overflow-hidden">
@@ -70,8 +64,8 @@ export default function ServerWakingScreen({
           className="text-2xl font-black text-white mb-2"
         >
           {!slow  && 'Connecting…'}
-          {slow && !long  && '☕ Waking up the server…'}
-          {long && !stuck && '☕ Almost there!'}
+          {slow && !long  && 'Connecting to the room…'}
+          {long && !stuck && 'Almost there…'}
           {stuck && '😬 Hmm, this is taking a while.'}
         </motion.h2>
 
@@ -89,19 +83,18 @@ export default function ServerWakingScreen({
             <>
               <p className="mb-2">
                 {variant === 'host'
-                  ? "The TV is connecting to OctoQuiz's game server."
+                  ? "The TV is connecting to OctoQuiz's room relay."
                   : "Your phone is connecting to the game."}
               </p>
               <p className="text-white/40 text-xs">
-                The server takes about <span className="text-purple-400 font-bold">30 seconds</span> to wake up
-                if no one's played recently — that's free hosting for you.
-                It'll be lightning-fast after this.
+                OctoQuiz now runs on Cloudflare. If this takes more than a few
+                seconds, the room relay or network connection needs a refresh.
               </p>
             </>
           )}
           {stuck && (
             <>
-              <p className="mb-2">Still trying — refreshing should help.</p>
+              <p className="mb-2">Still trying. Refreshing usually reconnects the room.</p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-2 inline-block rounded-full bg-purple-600 hover:bg-purple-500 px-5 py-2 text-white font-bold text-sm transition-colors"
@@ -112,7 +105,7 @@ export default function ServerWakingScreen({
           )}
         </motion.div>
 
-        {/* Progress strip (only shown once cold-start is admitted) */}
+        {/* Progress strip */}
         {slow && !stuck && (
           <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
             <motion.div
@@ -120,12 +113,12 @@ export default function ServerWakingScreen({
               style={{ background: 'linear-gradient(90deg, #a855f7, #ec4899)' }}
               initial={{ width: '0%' }}
               animate={{ width: ['0%', '95%'] }}
-              transition={{ duration: 30, ease: 'easeOut' }}
+              transition={{ duration: 15, ease: 'easeOut' }}
             />
           </div>
         )}
 
-        {/* Elapsed counter — subtle, only after we admit cold start */}
+        {/* Elapsed counter */}
         {slow && (
           <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-white/30">
             {elapsed}s

@@ -2,17 +2,15 @@
 /**
  * useGameHost — runs all OctoQuiz game logic on the host client.
  *
- * Replaces the server.ts Socket.IO server for Cloudflare Pages deployment.
+ * Uses a Cloudflare Durable Object room relay.
  * The host browser IS the game server: it manages state, runs timers,
- * and broadcasts updates to players via Supabase Realtime Broadcast.
+ * and broadcasts updates to players through the room relay.
  */
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { supabase, channelName } from '@/lib/supabase'
-import { PLAYER_COLORS, PLAYER_EMOJIS } from '@/lib/types'
+import { realtimeUrl, parseRelayMessage, sendRelay } from '@/lib/realtime'
 import type { Room, RoomPublic, GameState, GameAction, TriviaConfig, GameType } from '@/lib/types'
-import type { RealtimeChannel } from '@supabase/supabase-js'
 
-// ── Game logic imports (pure functions — unchanged from server.ts) ─────────────
+// ── Game logic imports (pure functions owned by the host MVP) ──────────────────
 import {
   createTriviaGame, startQuestion, submitTriviaAnswer,
   calculateTriviaPoints, updateStreaks, eliminateWrongAnswers,
@@ -61,7 +59,7 @@ export function useGameHost(roomCode: string) {
   // Strokes on the single shared Decoy whiteboard (all players draw on it in turn)
   const [drawStrokes, setDrawStrokes] = useState<DrawStroke[]>([])
 
-  const channelRef = useRef<RealtimeChannel | null>(null)
+  const channelRef = useRef<WebSocket | null>(null)
   const roomRef    = useRef<Room | null>(null)           // always-current ref
   const gameRef    = useRef<GameState | null>(null)
   const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -82,11 +80,11 @@ export function useGameHost(roomCode: string) {
 
   // ── Broadcast helpers ────────────────────────────────────────────────────────
   const broadcastRoom = useCallback((r: Room) => {
-    channelRef.current?.send({ type: 'broadcast', event: 'room_state', payload: toPublic(r) })
+    sendRelay(channelRef.current, { type: 'broadcast', event: 'room_state', payload: toPublic(r) })
   }, [])
 
   const broadcastGame = useCallback((gs: GameState) => {
-    channelRef.current?.send({ type: 'broadcast', event: 'game_state', payload: gs })
+    sendRelay(channelRef.current, { type: 'broadcast', event: 'game_state', payload: gs })
   }, [])
 
   // Convenience: update room state + broadcast
@@ -435,7 +433,7 @@ export function useGameHost(roomCode: string) {
     else if (game === 'landmarks') gs = await createLandmarksGame()
     else if (game === 'drawimposter') {
       setDrawStrokes([])
-      channelRef.current?.send({ type: 'broadcast', event: 'draw_reset', payload: {} })
+      sendRelay(channelRef.current, { type: 'broadcast', event: 'draw_reset', payload: {} })
       gs = createDrawImposterGame(r.players.map(p => p.id), 4)
     }
     else return
@@ -454,7 +452,7 @@ export function useGameHost(roomCode: string) {
       imposterStartDiscussion, capitalsStartQuestion, landmarksStartQuestion, drawStartDrawing])
 
   const kickPlayer = useCallback((playerId: string) => {
-    channelRef.current?.send({ type: 'broadcast', event: 'player_kicked', payload: { id: playerId } })
+    sendRelay(channelRef.current, { type: 'broadcast', event: 'player_kicked', payload: { id: playerId } })
     updateRoom(r => ({ ...r, players: r.players.filter(p => p.id !== playerId) }))
   }, [updateRoom])
 
@@ -470,7 +468,7 @@ export function useGameHost(roomCode: string) {
     updateGame(null)
   }, [clearTimer, updateRoom, updateGame])
 
-  // ── Supabase channel setup ────────────────────────────────────────────────
+  // ── Cloudflare room relay setup ───────────────────────────────────────────
   useEffect(() => {
     const code = roomCode.toUpperCase()
     const hostId = `host-${code}`
@@ -489,14 +487,22 @@ export function useGameHost(roomCode: string) {
     setRoom(initialRoom)
     roomRef.current = initialRoom
 
-    const ch = supabase.channel(channelName(code), {
-      config: { presence: { key: hostId }, broadcast: { self: false, ack: false } },
-    })
-    channelRef.current = ch
+    const socket = new WebSocket(realtimeUrl(code))
+    channelRef.current = socket
 
-    ch
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        newPresences.forEach((p: Record<string, unknown>) => {
+    socket.addEventListener('open', () => {
+      setConnected(true)
+      sendRelay(socket, { type: 'presence_track', payload: { role: 'host', hostId } })
+      // Send initial room state to any players who joined before host.
+      sendRelay(socket, { type: 'broadcast', event: 'room_state', payload: toPublic(initialRoom) })
+    })
+
+    socket.addEventListener('message', event => {
+      const msg = parseRelayMessage(event.data)
+      if (!msg) return
+
+      if (msg.type === 'presence' && msg.event === 'join') {
+        msg.newPresences.forEach((p: Record<string, unknown>) => {
           if (p['role'] !== 'player') return
           const player = {
             id:          p['id'] as string,
@@ -508,7 +514,18 @@ export function useGameHost(roomCode: string) {
             isConnected: true,
           }
           setRoom(prev => {
-            if (!prev || prev.players.find(pl => pl.id === player.id)) return prev
+            if (!prev) return prev
+            if (prev.players.find(pl => pl.id === player.id)) {
+              const next = {
+                ...prev,
+                players: prev.players.map(pl => pl.id === player.id ? { ...pl, ...player, isReady: pl.isReady } : pl),
+              }
+              roomRef.current = next
+              broadcastRoom(next)
+              return next
+            }
+            if (prev.status !== 'lobby') return prev
+            if (prev.players.length >= 50) return prev
             const next = {
               ...prev,
               players: [...prev.players, player],
@@ -516,59 +533,52 @@ export function useGameHost(roomCode: string) {
             }
             roomRef.current = next
             broadcastRoom(next)
-            channelRef.current?.send({ type: 'broadcast', event: 'room_state', payload: toPublic(next) })
             return next
           })
         })
-      })
-      .on('presence', { event: 'leave' }, ({ key }) => {
+        return
+      }
+
+      if (msg.type === 'presence' && msg.event === 'leave') {
         setRoom(prev => {
           if (!prev) return prev
-          const next = { ...prev, players: prev.players.map(p => p.id === key ? { ...p, isConnected: false } : p) }
+          const next = { ...prev, players: prev.players.map(p => p.id === msg.key ? { ...p, isConnected: false } : p) }
           roomRef.current = next
           broadcastRoom(next)
           return next
         })
-      })
-      .on('broadcast', { event: 'player_action' }, ({ payload }: { payload: { playerId: string; action: GameAction } }) => {
-        handleAction(payload.playerId, payload.action)
-      })
-      .on('broadcast', { event: 'player_ready' }, ({ payload }: { payload: { playerId: string } }) => {
+        return
+      }
+
+      if (msg.type !== 'broadcast' || !msg.payload || typeof msg.payload !== 'object') return
+
+      if (msg.event === 'player_action') {
+        const payload = msg.payload as { playerId?: string; action?: GameAction }
+        if (payload.playerId && payload.action) handleAction(payload.playerId, payload.action)
+      } else if (msg.event === 'player_ready') {
+        const payload = msg.payload as { playerId?: string }
+        if (!payload.playerId) return
         updateRoom(r => ({
           ...r,
           players: r.players.map(p => p.id === payload.playerId ? { ...p, isReady: true } : p),
         }))
-      })
-      .on('broadcast', { event: 'select_game' }, ({ payload }: { payload: { game: GameType } }) => {
-        selectGame(payload.game)
-      })
-      .on('broadcast', { event: 'start_game' }, ({ payload }: { payload: { config?: TriviaConfig } }) => {
-        startGame(payload.config)
-      })
-      .on('broadcast', { event: 'kick_player' }, ({ payload }: { payload: { targetId: string } }) => {
-        kickPlayer(payload.targetId)
-      })
-      .on('broadcast', { event: 'next_round' }, () => nextRound())
-      .on('broadcast', { event: 'end_game' }, () => endGame())
-      .on('broadcast', { event: 'draw' }, ({ payload }: { payload: { stroke: DrawStroke } }) => {
-        setDrawStrokes(prev => [...prev, payload.stroke])   // shared whiteboard
-      })
-      .on('broadcast', { event: 'draw_reset' }, () => setDrawStrokes([]))
-      .subscribe(status => {
-        if (status === 'SUBSCRIBED') {
-          setConnected(true)
-          ch.track({ role: 'host', hostId })
-          // Send initial room state to any players who joined before host
-          broadcastRoom(initialRoom)
-        }
-      })
+      } else if (msg.event === 'draw') {
+        const payload = msg.payload as { stroke?: DrawStroke }
+        if (payload.stroke) setDrawStrokes(prev => [...prev, payload.stroke!]) // shared whiteboard
+      } else if (msg.event === 'draw_reset') {
+        setDrawStrokes([])
+      }
+    })
+
+    socket.addEventListener('close', () => setConnected(false))
+    socket.addEventListener('error', () => setConnected(false))
 
     return () => {
       clearTimer()
-      ch.unsubscribe()
+      socket.close()
       channelRef.current = null
     }
-  }, [roomCode, broadcastRoom, handleAction, selectGame, startGame, kickPlayer, endGame, nextRound, updateRoom, clearTimer])
+  }, [roomCode, broadcastRoom, handleAction, updateRoom, clearTimer])
 
   return {
     room:      room ? toPublic(room) : null,
