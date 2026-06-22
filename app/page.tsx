@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { generateRoomCode } from '@/lib/room-code'
@@ -32,6 +32,8 @@ const GAMES = [
 export default function HomePage() {
   const router = useRouter()
   const [view,   setView]   = useState<'home' | 'join'>('home')
+
+  useEffect(() => { fetch('/healthz').catch(() => {}) }, [])
   const [code,   setCode]   = useState('')
   const [name,   setName]   = useState('')
   const [avatar, setAvatar] = useState<string>(AVATAR_OPTIONS[0])
