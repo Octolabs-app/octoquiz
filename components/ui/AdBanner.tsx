@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * Non-invasive ad banner for OctoQuiz.
@@ -49,11 +49,14 @@ const PROMOS = [
 
 export default function AdBanner({ variant = 'banner', className = '' }: AdBannerProps) {
   const [dismissed, setDismissed] = useState(false)
+  const [promoIndex, setPromoIndex] = useState(0)
+  const promo = PROMOS[promoIndex]
+
+  useEffect(() => {
+    setPromoIndex(Math.floor(Math.random() * PROMOS.length))
+  }, [])
 
   if (dismissed) return null
-
-  // Pick a random promo (stable per mount)
-  const [promo] = useState(() => PROMOS[Math.floor(Math.random() * PROMOS.length)])
 
   if (variant === 'banner') {
     return (

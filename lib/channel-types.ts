@@ -1,11 +1,11 @@
 /**
- * Typed Supabase Realtime channel events for OctoQuiz.
+ * Typed room relay events for OctoQuiz.
  *
  * Architecture (host-as-server):
- *  - Host joins as PRESENCE with role='host'
- *  - Players join as PRESENCE with their player data
- *  - Host BROADCASTS room_state / game_state to all
- *  - Players BROADCAST player_action to the channel (host handles it)
+ *  - Host tracks presence with role='host'
+ *  - Players track presence with their player data
+ *  - Host broadcasts room_state / game_state to all
+ *  - Players broadcast player_action to the relay for the host to handle
  */
 
 import type { RoomPublic, GameState, GameAction } from './types'
@@ -39,13 +39,7 @@ export type HostEvent =
 // ── Broadcast events (player → channel, host reads) ──────────────────────────
 
 export type PlayerEvent =
-  | { event: 'player_join';   payload: { name: string; avatar: string; color: string } }
   | { event: 'player_action'; payload: { playerId: string; action: GameAction } }
   | { event: 'player_ready';  payload: { playerId: string } }
-  | { event: 'select_game';   payload: { game: string } }
-  | { event: 'start_game';    payload: { config?: unknown } }
-  | { event: 'kick_player';   payload: { targetId: string } }
-  | { event: 'next_round';    payload: Record<string, never> }
-  | { event: 'end_game';      payload: Record<string, never> }
 
 export type ChannelEvent = HostEvent | PlayerEvent
