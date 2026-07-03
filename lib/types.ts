@@ -15,6 +15,10 @@ export interface Player {
   score: number
   isReady: boolean
   isConnected: boolean
+  // True when the player joined while a game was already in progress. They sit
+  // out the current game (excluded from its answer/vote completion checks) and
+  // are folded in as a full participant when the next game starts.
+  pendingNextRound?: boolean
 }
 
 // ─── Room ────────────────────────────────────────────────────────────────────

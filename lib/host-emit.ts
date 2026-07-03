@@ -6,6 +6,7 @@ export interface HostEmit {
   startGame:   (config?: TriviaConfig) => void
   kickPlayer:  (id: string) => void
   endGame:     () => void
+  changeGame:  () => void
   nextRound:   () => void
 }
 

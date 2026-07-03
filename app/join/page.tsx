@@ -124,8 +124,12 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
 
   if (room.status === 'results') return <PlayerResults room={room} me={me} />
 
-  if (room.status === 'lobby' || room.status === 'game-select') {
-    return <PlayerLobby room={room} me={me} emit={emit} />
+  // Players who joined while a game was already running wait it out on the lobby
+  // screen and are folded into the next game the host starts.
+  const waitingForNextRound = !!me.pendingNextRound && room.status === 'playing'
+
+  if (room.status === 'lobby' || room.status === 'game-select' || waitingForNextRound) {
+    return <PlayerLobby room={room} me={me} emit={emit} waitingForNextRound={waitingForNextRound} />
   }
 
   if (room.status === 'playing' && gameState) {

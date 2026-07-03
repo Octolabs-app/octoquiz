@@ -119,7 +119,9 @@ export function useGameHost(roomCode: string) {
     clearTimer()
     const gs = gameRef.current; const r = roomRef.current
     if (!gs || gs.game !== 'trivia' || !r) return
-    const playerIds = r.players.map(p => p.id)
+    // Queued late joiners are not participants: keep them out of scoring,
+    // streaks, elimination, and the sudden-death survivor count.
+    const playerIds = r.players.filter(p => !p.pendingNextRound).map(p => p.id)
     const pts = calculateTriviaPoints(gs, playerIds)
     // Add points to room players
     let updatedPlayers = r.players.map(p => ({ ...p, score: p.score + (pts[p.id] ?? 0) }))
@@ -372,29 +374,36 @@ export function useGameHost(roomCode: string) {
     const gs = gameRef.current; const r = roomRef.current
     if (!gs || !r) return
 
+    // Ignore actions from players queued for the next round — they are not part
+    // of the current game and must never affect its state or completion checks.
+    if (r.players.find(p => p.id === playerId)?.pendingNextRound) return
+
+    // Players actually taking part in the current game (excludes late joiners).
+    const active = r.players.filter(p => !p.pendingNextRound)
+
     if (action.type === 'trivia_answer' && gs.game === 'trivia') {
       const updated = submitTriviaAnswer(gs, playerId, action.answerId)
       updateGame(updated)
-      // Auto-reveal when all non-eliminated players answered
-      const activeIds = r.players.filter(p => !gs.eliminated.includes(p.id)).map(p => p.id)
+      // Auto-reveal when all non-eliminated active players answered
+      const activeIds = active.filter(p => !gs.eliminated.includes(p.id)).map(p => p.id)
       const allAnswered = activeIds.every(id => updated.answers[id])
       if (allAnswered) triviaReveal()
     } else if (action.type === 'flag_answer' && gs.game === 'flag-quiz') {
       updateGame(submitFlagAnswer(gs, playerId, action.answer))
-      const allAnswered = r.players.every(p => gameRef.current?.game === 'flag-quiz' && (gameRef.current as typeof gs).answers[p.id])
+      const allAnswered = active.every(p => gameRef.current?.game === 'flag-quiz' && (gameRef.current as typeof gs).answers[p.id])
       if (allAnswered) flagReveal()
     } else if (action.type === 'imposter_vote' && gs.game === 'imposter') {
       const updated = submitVote(gs, playerId, action.targetId)
       updateGame(updated)
-      const allVoted = r.players.every(p => updated.votes[p.id])
+      const allVoted = active.every(p => updated.votes[p.id])
       if (allVoted) imposterResolve()
     } else if (action.type === 'capitals_answer' && gs.game === 'capitals') {
       updateGame(submitCapitalsAnswer(gs, playerId, action.answer))
-      const allAnswered = r.players.every(p => (gameRef.current as typeof gs)?.answers[p.id])
+      const allAnswered = active.every(p => (gameRef.current as typeof gs)?.answers[p.id])
       if (allAnswered) capitalsReveal()
     } else if (action.type === 'landmarks_answer' && gs.game === 'landmarks') {
       updateGame(submitLandmarksAnswer(gs, playerId, action.answer))
-      const allAnswered = r.players.every(p => (gameRef.current as typeof gs)?.answers[p.id])
+      const allAnswered = active.every(p => (gameRef.current as typeof gs)?.answers[p.id])
       if (allAnswered) landmarksReveal()
     } else if (action.type === 'stroke_done' && gs.game === 'drawimposter') {
       // One-stroke-per-turn: as soon as the current drawer finishes their line,
@@ -406,11 +415,11 @@ export function useGameHost(roomCode: string) {
       if (gs.phase !== 'drawing') return
       const updated = addVoteCall(gs, playerId)
       updateGame(updated)
-      if (shouldStartEarlyVote(updated, r.players.length)) drawSkipToVote()
+      if (shouldStartEarlyVote(updated, active.length)) drawSkipToVote()
     } else if (action.type === 'drawimposter_vote' && gs.game === 'drawimposter') {
       const updated = submitDrawVote(gs, playerId, action.targetId)
       updateGame(updated)
-      const allVoted = r.players.every(p => updated.votes[p.id])
+      const allVoted = active.every(p => updated.votes[p.id])
       if (allVoted) drawResolve()
     }
   }, [updateGame, triviaReveal, flagReveal, imposterResolve, capitalsReveal, landmarksReveal, drawResolve, drawSkipToVote, drawNextTurn, setTimer])
@@ -438,7 +447,14 @@ export function useGameHost(roomCode: string) {
     }
     else return
 
-    updateRoom(rr => ({ ...rr, status: 'playing', gameState: gs }))
+    // Everyone currently in the room (including anyone who joined mid-previous
+    // game) becomes a full participant in the new game.
+    updateRoom(rr => ({
+      ...rr,
+      status: 'playing',
+      gameState: gs,
+      players: rr.players.map(p => ({ ...p, pendingNextRound: false })),
+    }))
     updateGame(gs)
 
     // Kick off game flow
@@ -461,10 +477,28 @@ export function useGameHost(roomCode: string) {
     updateRoom(r => ({ ...r, status: 'results' }))
   }, [clearTimer, updateRoom])
 
+  // Abandon the game in progress and jump straight back to game selection,
+  // keeping the same players and their cumulative scores. Unlike nextRound this
+  // does NOT pass through the lobby or the results screen.
+  const changeGame = useCallback(() => {
+    clearTimer()
+    setDrawStrokes([])
+    sendRelay(channelRef.current, { type: 'broadcast', event: 'draw_reset', payload: {} })
+    updateRoom(r => ({ ...r, status: 'game-select', currentGame: null, gameState: null }))
+    updateGame(null)
+  }, [clearTimer, updateRoom, updateGame])
+
   const nextRound = useCallback(() => {
     clearTimer()
     setDrawStrokes([])
-    updateRoom(r => ({ ...r, status: 'lobby', currentGame: null, gameState: null }))
+    updateRoom(r => ({
+      ...r,
+      status: 'lobby',
+      currentGame: null,
+      gameState: null,
+      // Late joiners from the finished game are now regular lobby members.
+      players: r.players.map(p => ({ ...p, pendingNextRound: false })),
+    }))
     updateGame(null)
   }, [clearTimer, updateRoom, updateGame])
 
@@ -518,17 +552,22 @@ export function useGameHost(roomCode: string) {
             if (prev.players.find(pl => pl.id === player.id)) {
               const next = {
                 ...prev,
-                players: prev.players.map(pl => pl.id === player.id ? { ...pl, ...player, isReady: pl.isReady } : pl),
+                // Preserve isReady and pendingNextRound across reconnects so a
+                // late joiner who drops and returns mid-game stays queued.
+                players: prev.players.map(pl => pl.id === player.id ? { ...pl, ...player, isReady: pl.isReady, pendingNextRound: pl.pendingNextRound } : pl),
               }
               roomRef.current = next
               broadcastRoom(next)
               return next
             }
-            if (prev.status !== 'lobby') return prev
             if (prev.players.length >= 50) return prev
+            // Late join: a player arriving while a game is actually in progress
+            // is queued for the next round rather than dropped into the live
+            // game (which they'd have no valid state for).
+            const pendingNextRound = prev.status === 'playing'
             const next = {
               ...prev,
-              players: [...prev.players, player],
+              players: [...prev.players, { ...player, pendingNextRound }],
               gameMasterId: prev.gameMasterId ?? player.id,
             }
             roomRef.current = next
@@ -588,6 +627,7 @@ export function useGameHost(roomCode: string) {
     startGame,
     kickPlayer,
     endGame,
+    changeGame,
     nextRound,
     drawStrokes,
     drawSkipToVote,
