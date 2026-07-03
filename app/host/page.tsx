@@ -38,7 +38,7 @@ export default function HostPage() {
 function HostRoom({ roomCode }: { roomCode: string }) {
   const {
     room, gameState, connected,
-    selectGame, startGame, kickPlayer, endGame, nextRound,
+    selectGame, startGame, kickPlayer, endGame, changeGame, nextRound,
     drawStrokes, drawSkipToVote,
   } = useGameHost(roomCode)
 
@@ -51,6 +51,7 @@ function HostRoom({ roomCode }: { roomCode: string }) {
     startGame:  (config?: TriviaConfig) => startGame(config),
     kickPlayer: (id: string)           => kickPlayer(id),
     endGame:    ()                     => endGame(),
+    changeGame: ()                     => changeGame(),
     nextRound:  ()                     => nextRound(),
   }
 
@@ -58,13 +59,67 @@ function HostRoom({ roomCode }: { roomCode: string }) {
   if (room.status === 'game-select') return <GameSelect room={room} emit={emit} />
 
   if (room.status === 'playing' && gameState) {
-    if (gameState.game === 'trivia')    return <TriviaHost   state={gameState} room={room} />
-    if (gameState.game === 'flag-quiz') return <FlagQuizHost  state={gameState} room={room} />
-    if (gameState.game === 'imposter')  return <ImposterHost  state={gameState} room={room} emit={emit} />
-    if (gameState.game === 'capitals')  return <CapitalsHost  state={gameState} room={room} />
-    if (gameState.game === 'landmarks') return <LandmarksHost state={gameState} room={room} />
-    if (gameState.game === 'drawimposter') return <DrawImposterHost state={gameState} room={room} strokes={drawStrokes} onSkipToVote={drawSkipToVote} />
+    const game =
+      gameState.game === 'trivia'       ? <TriviaHost    state={gameState} room={room} /> :
+      gameState.game === 'flag-quiz'    ? <FlagQuizHost  state={gameState} room={room} /> :
+      gameState.game === 'imposter'     ? <ImposterHost  state={gameState} room={room} emit={emit} /> :
+      gameState.game === 'capitals'     ? <CapitalsHost  state={gameState} room={room} /> :
+      gameState.game === 'landmarks'    ? <LandmarksHost state={gameState} room={room} /> :
+      gameState.game === 'drawimposter' ? <DrawImposterHost state={gameState} room={room} strokes={drawStrokes} onSkipToVote={drawSkipToVote} /> :
+      null
+    if (game) {
+      return (
+        <>
+          {game}
+          <HostGameControls onSwitchGame={changeGame} onEndGame={endGame} />
+        </>
+      )
+    }
   }
 
   return <HostLobby room={room} emit={emit} />
+}
+
+/**
+ * Floating host-only controls layered over any in-progress game so the host can
+ * jump straight to a different game (players + cumulative scores preserved) or
+ * end early to the results screen — without waiting for the game to finish.
+ */
+function HostGameControls({ onSwitchGame, onEndGame }: { onSwitchGame: () => void; onEndGame: () => void }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-2 no-select">
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-label="Host controls"
+        className="w-11 h-11 rounded-full flex items-center justify-center text-lg transition-all active:scale-90 backdrop-blur"
+        style={{ background: 'rgba(11,17,32,0.7)', border: '1px solid rgba(198,168,124,0.4)', color: '#C6A87C' }}
+      >
+        {open ? '✕' : '⚙️'}
+      </button>
+
+      {open && (
+        <div
+          className="flex flex-col gap-2 rounded-2xl p-2 backdrop-blur"
+          style={{ background: 'rgba(11,17,32,0.85)', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <button
+            onClick={() => { setOpen(false); onSwitchGame() }}
+            className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-95 whitespace-nowrap"
+            style={{ background: 'rgba(198,168,124,0.15)', border: '1px solid rgba(198,168,124,0.4)', color: '#C6A87C' }}
+          >
+            ⇄ Switch game
+          </button>
+          <button
+            onClick={() => { setOpen(false); onEndGame() }}
+            className="rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-95 whitespace-nowrap"
+            style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171' }}
+          >
+            ⏹ End game
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }

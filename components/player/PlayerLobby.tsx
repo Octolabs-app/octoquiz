@@ -5,9 +5,11 @@ interface Props {
   room: RoomPublic | null
   me: Player | null
   emit?: unknown
+  // True when this player joined mid-game and is queued for the next round.
+  waitingForNextRound?: boolean
 }
 
-export default function PlayerLobby({ room, me }: Props) {
+export default function PlayerLobby({ room, me, waitingForNextRound }: Props) {
   if (!room || !me) {
     return (
       <div className="min-h-screen bg-night-900 flex items-center justify-center">
@@ -33,9 +35,19 @@ export default function PlayerLobby({ room, me }: Props) {
 
       {/* Waiting */}
       <div className="glass rounded-3xl p-6 w-full text-center mb-8">
-        <div className="text-4xl mb-3 animate-pulse">👀</div>
-        <p className="text-white/60 font-medium">Waiting for the game to start...</p>
-        <p className="text-white/30 text-sm mt-1">Check the TV for updates</p>
+        {waitingForNextRound ? (
+          <>
+            <div className="text-4xl mb-3 animate-pulse">⏳</div>
+            <p className="text-white/60 font-medium">You&apos;re in! A game is already in progress.</p>
+            <p className="text-white/30 text-sm mt-1">You&apos;ll join the next round — watch the TV</p>
+          </>
+        ) : (
+          <>
+            <div className="text-4xl mb-3 animate-pulse">👀</div>
+            <p className="text-white/60 font-medium">Waiting for the game to start...</p>
+            <p className="text-white/30 text-sm mt-1">Check the TV for updates</p>
+          </>
+        )}
       </div>
 
       {/* All players */}
