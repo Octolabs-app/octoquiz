@@ -1,7 +1,12 @@
 name = "octoquiz"
+account_id = "48e94010454dbf3fe6f708b37130ef5b"
 main = "worker/index.js"
 compatibility_date = "2026-06-18"
 compatibility_flags = [ "nodejs_compat" ]
+
+routes = [
+  { pattern = "octoquiz.octolabs.app/*", zone_name = "octolabs.app" }
+]
 
 [assets]
 directory = "out"
