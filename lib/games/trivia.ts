@@ -1,3 +1,4 @@
+import {answerTime,timedPoints} from '@/lib/game-rules'
 import { getLocalQuestions } from '@/data/trivia-local'
 import type { TriviaState, TriviaQuestion, TriviaConfig, TriviaMode, TriviaDifficulty } from '@/lib/types'
 export { TRIVIA_CATEGORIES } from '@/lib/trivia-config'
@@ -95,7 +96,7 @@ interface OTDBResult {
 }
 
 function b64(s: string): string {
-  try { return Buffer.from(s, 'base64').toString('utf8') } catch { return s }
+  try { return new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0))) } catch { return s }
 }
 
 async function fetchOpenTDB(
@@ -239,7 +240,10 @@ export function submitTriviaAnswer(
   if (state.answers[playerId]) return state            // already answered
   if (state.eliminated.includes(playerId)) return state // spectator
 
-  const timeMs = state.startedAt ? Date.now() - state.startedAt : state.timeLimit * 1000
+  const timeMs = answerTime(state.startedAt,state.timeLimit)
+  if(timeMs===null)return state
+  const question=state.questions[state.currentIndex]
+  if(!question || !Number.isInteger(answerId) || answerId<0 || answerId>=question.options.length)return state
   return {
     ...state,
     answers: { ...state.answers, [playerId]: { index: answerId, timeMs } },
@@ -261,8 +265,7 @@ export function calculateTriviaPoints(
     if (!ans || ans.index !== q.correctIndex) { pts[pid] = 0; continue }
 
     // Speed bonus
-    const ratio   = Math.max(0, 1 - ans.timeMs / (state.timeLimit * 1000))
-    let score     = Math.round(min + ratio * (max - min))
+    let score = timedPoints(ans.timeMs,state.timeLimit,min,max)
 
     // Streak multiplier
     const streak = (state.streaks[pid] ?? 0) + 1 // +1 because they just got it right

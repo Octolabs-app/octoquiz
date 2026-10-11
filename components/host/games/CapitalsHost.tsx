@@ -78,7 +78,7 @@ export default function CapitalsHost({ room, state }: Props) {
         <motion.div key={`q-${state.currentIndex}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
           className="text-center mb-10 max-w-5xl mx-auto w-full">
           <p className="text-white/40 text-lg uppercase tracking-[0.3em] mb-3">What is the capital of</p>
-          <h2 className="text-6xl font-black" style={{ color: '#C6A87C' }}>{q.country}?</h2>
+          <h2 className="text-6xl font-black" style={{ color: '#39644d' }}>{q.country}?</h2>
         </motion.div>
       </AnimatePresence>
 

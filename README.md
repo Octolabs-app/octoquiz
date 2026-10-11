@@ -16,12 +16,17 @@ relay.
 
 ```bash
 npm install
+npm test
+npm run lint
 npm run build
 npm run preview
 npm run deploy
 ```
 
 Use Node.js 22 or newer for local work and CI.
+
+See [Studio release notes](docs/STUDIO_RELEASE.md) for UI changes, logic coverage,
+dependency audit and the host-owned game-state limitation.
 
 ## Environment
 

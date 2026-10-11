@@ -12,7 +12,7 @@ interface Props {
   strokes: DrawStroke[]
 }
 
-const PALETTE = ['#E8E6E1', '#C6A87C', '#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#0B1120']
+const PALETTE = ['#20342a', '#39644d', '#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f3f4ed']
 let strokeSeq = 0
 
 export default function DrawImposterPlayer({ state, me, room, sendAction, sendDraw, strokes }: Props) {
@@ -20,7 +20,7 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
   const ctxRef    = useRef<CanvasRenderingContext2D | null>(null)
   const drawing   = useRef(false)
   const cur       = useRef<number[]>([])
-  const [color, setColor] = useState('#E8E6E1')
+  const [color, setColor] = useState('#20342a')
   const [width, setWidth] = useState(4)
   const [voted, setVoted] = useState<string | null>(null)
   const [calledVote, setCalledVote] = useState(false)
@@ -124,8 +124,8 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
         <div className="text-center animate-bounce-in w-full max-w-xs">
           <div className="text-5xl mb-3">🎨</div>
           <p className="text-white/40 text-sm uppercase tracking-widest mb-5">Your secret word</p>
-          <div className="rounded-3xl p-8 mb-5 w-full border-2" style={{ background: '#C6A87C1a', borderColor: '#C6A87C' }}>
-            <p className="text-4xl font-black" style={{ color: '#C6A87C' }}>{myWord}</p>
+          <div className="rounded-3xl p-8 mb-5 w-full border-2" style={{ background: '#39644d1a', borderColor: '#39644d' }}>
+            <p className="text-4xl font-black" style={{ color: '#39644d' }}>{myWord}</p>
           </div>
           <div className="glass rounded-2xl p-4 text-sm text-white/55 leading-relaxed text-left">
             🖌️ Players take turns adding <b>ONE line each</b> to <b>one shared whiteboard</b> (watch the TV).
@@ -143,7 +143,7 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
         <div className="flex items-center justify-between mb-2 px-1">
           <div>
             <p className="text-white/30 text-[10px] uppercase tracking-widest">Round {state.round}/{state.totalRounds} · your word</p>
-            <p className="text-lg font-black" style={{ color: '#C6A87C' }}>{myWord}</p>
+            <p className="text-lg font-black" style={{ color: '#39644d' }}>{myWord}</p>
           </div>
           <button onClick={callVote} disabled={calledVote}
             className="rounded-xl px-3 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
@@ -165,7 +165,7 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
         <canvas ref={canvasRef}
           onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
           className="flex-1 w-full rounded-2xl touch-none"
-          style={{ background: '#0f1628', border: `1px solid ${canDraw ? '#22c55e' : 'rgba(198,168,124,0.2)'}`, opacity: canDraw ? 1 : 0.95 }} />
+          style={{ background: '#edf0e7', border: `1px solid ${canDraw ? '#22c55e' : 'rgba(57,100,77,0.2)'}`, opacity: canDraw ? 1 : 0.95 }} />
 
         {/* Tools — only while you may draw your line */}
         {canDraw ? (
@@ -173,11 +173,11 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
             <div className="flex gap-1.5 flex-1 overflow-x-auto">
               {PALETTE.map(c => (
                 <button key={c} onClick={() => setColor(c)} className="w-7 h-7 rounded-full flex-shrink-0 transition-transform"
-                  style={{ background: c, border: color === c ? '2px solid #fff' : '2px solid rgba(255,255,255,0.2)', transform: color === c ? 'scale(1.18)' : 'scale(1)' }} />
+                  style={{ background: c, border: color === c ? '2px solid #fff' : '2px solid rgba(32,52,42,0.2)', transform: color === c ? 'scale(1.18)' : 'scale(1)' }} />
               ))}
             </div>
             <button onClick={() => setWidth(width === 4 ? 10 : width === 10 ? 18 : 4)}
-              className="rounded-lg px-2 py-1 text-xs text-white/60" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              className="rounded-lg px-2 py-1 text-xs text-white/60" style={{ background: 'rgba(32,52,42,0.06)' }}>
               ●{width === 4 ? 'S' : width === 10 ? 'M' : 'L'}
             </button>
           </div>
@@ -208,7 +208,7 @@ export default function DrawImposterPlayer({ state, me, room, sendAction, sendDr
             {room.players.filter(p => p.id !== me.id).map(p => (
               <button key={p.id} onClick={() => vote(p.id)}
                 className="w-full flex items-center gap-4 rounded-2xl px-5 py-4 transition-all active:scale-[0.97]"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.1)' }}>
+                style={{ background: 'rgba(32,52,42,0.06)', border: '2px solid rgba(32,52,42,0.1)' }}>
                 <span className="text-2xl">{p.avatar}</span>
                 <span className="font-bold text-white flex-1 text-left">{p.name}</span>
                 <span className="text-xl">→</span>

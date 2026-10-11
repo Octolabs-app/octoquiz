@@ -67,8 +67,8 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
           rel="noopener noreferrer"
           className="block rounded-2xl overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]"
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(198,168,124,0.08)',
+            background: 'rgba(32,52,42,0.02)',
+            border: '1px solid rgba(57,100,77,0.08)',
             padding: '12px 16px',
             textDecoration: 'none',
           }}
@@ -77,25 +77,25 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
             <span style={{ fontSize: 28, flexShrink: 0 }}>{promo.emoji}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#C6A87C', letterSpacing: '0.3px' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#39644d', letterSpacing: '0.3px' }}>
                   {promo.title}
                 </span>
                 <span style={{
                   fontSize: 8, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' as const,
-                  color: 'rgba(198,168,124,0.5)', background: 'rgba(198,168,124,0.08)',
+                  color: 'rgba(57,100,77,0.5)', background: 'rgba(57,100,77,0.08)',
                   padding: '2px 6px', borderRadius: 4,
                 }}>
                   {promo.tag}
                 </span>
               </div>
-              <p style={{ fontSize: 11, color: 'rgba(232,230,225,0.35)', lineHeight: 1.4, margin: 0 }}>
+              <p style={{ fontSize: 11, color: 'rgba(32,52,42,0.35)', lineHeight: 1.4, margin: 0 }}>
                 {promo.desc}
               </p>
             </div>
-            <span style={{ fontSize: 12, color: 'rgba(198,168,124,0.3)', flexShrink: 0 }}>→</span>
+            <span style={{ fontSize: 12, color: 'rgba(57,100,77,0.3)', flexShrink: 0 }}>→</span>
           </div>
           <div style={{
-            fontSize: 8, color: 'rgba(232,230,225,0.15)', textAlign: 'right' as const,
+            fontSize: 8, color: 'rgba(32,52,42,0.15)', textAlign: 'right' as const,
             marginTop: 4, letterSpacing: '0.5px',
           }}>
             Ad · Octolabs
@@ -111,8 +111,8 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
         <div
           className="rounded-2xl overflow-hidden relative"
           style={{
-            background: 'rgba(198,168,124,0.04)',
-            border: '1px solid rgba(198,168,124,0.12)',
+            background: 'rgba(57,100,77,0.04)',
+            border: '1px solid rgba(57,100,77,0.12)',
             padding: '20px 20px 16px',
           }}
         >
@@ -122,7 +122,7 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
             aria-label="Dismiss ad"
             style={{
               position: 'absolute', top: 8, right: 10,
-              background: 'none', border: 'none', color: 'rgba(232,230,225,0.2)',
+              background: 'none', border: 'none', color: 'rgba(32,52,42,0.2)',
               fontSize: 14, cursor: 'pointer', padding: 4, lineHeight: 1,
             }}
           >
@@ -136,10 +136,10 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
           >
             <div style={{ textAlign: 'center' }}>
               <span style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>{promo.emoji}</span>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#C6A87C', marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#39644d', marginBottom: 4 }}>
                 {promo.title}
               </div>
-              <p style={{ fontSize: 12, color: 'rgba(232,230,225,0.4)', lineHeight: 1.5, margin: '0 0 12px' }}>
+              <p style={{ fontSize: 12, color: 'rgba(32,52,42,0.4)', lineHeight: 1.5, margin: '0 0 12px' }}>
                 {promo.desc}
               </p>
               <span
@@ -147,8 +147,8 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
                 style={{
                   display: 'inline-block', fontSize: 11, fontWeight: 700,
                   padding: '8px 20px', borderRadius: 10,
-                  background: 'rgba(198,168,124,0.12)', border: '1px solid rgba(198,168,124,0.2)',
-                  color: '#C6A87C', letterSpacing: '0.5px',
+                  background: 'rgba(57,100,77,0.12)', border: '1px solid rgba(57,100,77,0.2)',
+                  color: '#39644d', letterSpacing: '0.5px',
                 }}
               >
                 Check it out →
@@ -156,7 +156,7 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
             </div>
           </a>
           <div style={{
-            fontSize: 8, color: 'rgba(232,230,225,0.12)', textAlign: 'center' as const,
+            fontSize: 8, color: 'rgba(32,52,42,0.12)', textAlign: 'center' as const,
             marginTop: 10, letterSpacing: '0.5px',
           }}>
             Sponsored · Octolabs
@@ -174,11 +174,11 @@ export default function AdBanner({ variant = 'banner', className = '' }: AdBanne
         target="_blank"
         rel="noopener noreferrer"
         style={{
-          fontSize: 10, color: 'rgba(198,168,124,0.35)', textDecoration: 'none',
+          fontSize: 10, color: 'rgba(57,100,77,0.35)', textDecoration: 'none',
           letterSpacing: '0.5px', transition: 'color 0.2s',
         }}
-        onMouseOver={e => (e.currentTarget.style.color = 'rgba(198,168,124,0.6)')}
-        onMouseOut={e => (e.currentTarget.style.color = 'rgba(198,168,124,0.35)')}
+        onMouseOver={e => (e.currentTarget.style.color = 'rgba(57,100,77,0.6)')}
+        onMouseOut={e => (e.currentTarget.style.color = 'rgba(57,100,77,0.35)')}
       >
         {promo.emoji} {promo.title} — {promo.desc}
       </a>

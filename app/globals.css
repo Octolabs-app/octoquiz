@@ -90,8 +90,8 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: #0a0a14;
-  color: #ffffff;
+  background: #f3f4ed;
+  color: #20342a;
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
 }

@@ -88,9 +88,9 @@ export default function CapitalsPlayer({ state, me, sendAction }: Props) {
       <AnimatePresence mode="wait">
         <motion.div key={`q-${state.currentIndex}`} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
           className="rounded-2xl mb-4 p-6 text-center flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(198,168,124,0.18)' }}>
+          style={{ background: 'rgba(32,52,42,0.04)', border: '1px solid rgba(57,100,77,0.18)' }}>
           <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-2">What is the capital of</p>
-          <h2 className="text-3xl font-black" style={{ color: '#C6A87C' }}>{q.country}?</h2>
+          <h2 className="text-3xl font-black" style={{ color: '#39644d' }}>{q.country}?</h2>
         </motion.div>
       </AnimatePresence>
 
