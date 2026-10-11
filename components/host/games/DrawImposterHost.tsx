@@ -34,7 +34,7 @@ function SharedBoard({ strokes, className, style }: {
     }
   }, [strokes])
   return (
-    <div className={className} style={{ background: '#0f1628', border: '2px solid rgba(198,168,124,0.25)', borderRadius: 16, ...style }}>
+    <div className={className} style={{ background: '#edf0e7', border: '2px solid rgba(57,100,77,0.25)', borderRadius: 16, ...style }}>
       <canvas ref={ref} className="w-full h-full" style={{ borderRadius: 14 }} />
     </div>
   )
@@ -59,13 +59,13 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
       <div className="min-h-screen bg-night-900 flex flex-col items-center justify-center p-8 no-select">
         <div className="text-center animate-bounce-in mb-8">
           <div className="text-8xl mb-4">🎨</div>
-          <h1 className="text-6xl font-black mb-3" style={{ color: '#C6A87C' }}>Decoy</h1>
+          <h1 className="text-6xl font-black mb-3" style={{ color: '#39644d' }}>Decoy</h1>
           <p className="text-white/60 text-2xl">Everyone got a secret word on their phone…</p>
         </div>
-        <div className="glass rounded-2xl p-6 max-w-2xl text-center" style={{ border: '1px solid rgba(198,168,124,0.2)' }}>
+        <div className="glass rounded-2xl p-6 max-w-2xl text-center" style={{ border: '1px solid rgba(57,100,77,0.2)' }}>
           <p className="text-white/70 text-lg leading-relaxed">
             🖌️ <b>How to play:</b> Players take turns adding <b>ONE line each</b> to <b>one shared whiteboard</b>.
-            Everyone is drawing the <b>same word</b> — except the <span style={{ color: '#C6A87C' }}>decoy</span>, who got a different one.
+            Everyone is drawing the <b>same word</b> — except the <span style={{ color: '#39644d' }}>decoy</span>, who got a different one.
             After {state.totalRounds} rounds of lines, <b>vote out</b> whoever&apos;s lines look off!
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
             <div className={`text-6xl font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{timeLeft}s</div>
             <button onClick={onSkipToVote}
               className="rounded-2xl px-6 py-4 text-lg font-black transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#C6A87C,#a8894e)', color: '#0B1120' }}>
+              style={{ background: 'linear-gradient(135deg,#39644d,#254f38)', color: '#f3f4ed' }}>
               Start vote →
             </button>
           </div>
@@ -123,10 +123,10 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
           <div className="w-64 flex-shrink-0 space-y-2">
             {room.players.map(p => (
               <div key={p.id} className="flex items-center gap-2 rounded-xl px-3 py-2"
-                style={{ background: tally(p.id) > 0 ? `${p.color}22` : 'rgba(255,255,255,0.04)', border: `1px solid ${tally(p.id) > 0 ? p.color : 'transparent'}` }}>
+                style={{ background: tally(p.id) > 0 ? `${p.color}22` : 'rgba(32,52,42,0.04)', border: `1px solid ${tally(p.id) > 0 ? p.color : 'transparent'}` }}>
                 <span className="text-xl">{p.avatar}</span>
                 <span className="font-bold text-white flex-1 truncate">{p.name}</span>
-                {tally(p.id) > 0 && <span className="text-sm font-black" style={{ color: '#C6A87C' }}>{tally(p.id)}</span>}
+                {tally(p.id) > 0 && <span className="text-sm font-black" style={{ color: '#39644d' }}>{tally(p.id)}</span>}
               </div>
             ))}
           </div>
@@ -156,8 +156,8 @@ export default function DrawImposterHost({ room, state, strokes, onSkipToVote }:
           </div>
           <div className="text-4xl text-white/20">vs</div>
           <div className="text-center">
-            <p className="text-sm" style={{ color: '#C6A87C' }}>Decoy&apos;s word</p>
-            <p className="text-3xl font-black" style={{ color: '#C6A87C' }}>{state.imposterWord}</p>
+            <p className="text-sm" style={{ color: '#39644d' }}>Decoy&apos;s word</p>
+            <p className="text-3xl font-black" style={{ color: '#39644d' }}>{state.imposterWord}</p>
           </div>
         </div>
       </div>

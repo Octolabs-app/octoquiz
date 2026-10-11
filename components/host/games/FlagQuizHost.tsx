@@ -132,7 +132,7 @@ export default function FlagQuizHost({ room, state }: Props) {
             className="rounded-xl"
             style={{
               boxShadow: '0 25px 60px -10px rgba(0,0,0,0.7)',
-              border: '3px solid rgba(255,255,255,0.12)',
+              border: '3px solid rgba(32,52,42,0.12)',
               width: 'min(320px, 60vw)',
               height: 'auto',
             }}

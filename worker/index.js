@@ -51,6 +51,7 @@ export class RoomObject {
   }
 
   onMessage(socket, data) {
+    if (typeof data !== 'string' || data.length > 131072) return
     const msg = safeParse(data)
     if (!msg || typeof msg !== 'object') return
 
@@ -59,11 +60,35 @@ export class RoomObject {
 
     if (msg.type === 'presence_track' && msg.payload && typeof msg.payload === 'object') {
       const payload = msg.payload
-      const key = typeof payload.id === 'string'
-        ? payload.id
-        : typeof payload.hostId === 'string'
-          ? payload.hostId
-          : session.key
+      if (!['host', 'player'].includes(payload.role)) return
+      if (
+        session.presence &&
+        (payload.role !== session.presence.role || (payload.id ?? payload.hostId) !== session.key)
+      )
+        return
+      if (
+        payload.role === 'host' &&
+        [...this.sessions].some(([other, s]) => other !== socket && s.presence?.role === 'host')
+      )
+        return
+      if (
+        payload.role === 'player' &&
+        (typeof payload.id !== 'string' ||
+          typeof payload.name !== 'string' ||
+          !payload.name.trim() ||
+          payload.name.length > 20)
+      )
+        return
+      const key =
+        typeof payload.id === 'string'
+          ? payload.id
+          : typeof payload.hostId === 'string'
+            ? payload.hostId
+            : session.key
+
+      // A live connection owns its identity until it disconnects.
+      if ([...this.sessions].some(([other, s]) => other !== socket && s.presence && s.key === key))
+        return
 
       session.key = key
       session.presence = payload
@@ -85,11 +110,15 @@ export class RoomObject {
       return
     }
 
-    if (msg.type !== 'broadcast' || typeof msg.event !== 'string') return
+    if (msg.type !== 'broadcast' || typeof msg.event !== 'string' || !session.presence) return
+    const allowed =
+      session.presence.role === 'host'
+        ? ['room_state', 'game_state', 'player_kicked', 'draw_reset', 'draw']
+        : ['player_action', 'player_ready', 'draw']
+    if (!allowed.includes(msg.event)) return
 
-    const payload = msg.payload && typeof msg.payload === 'object'
-      ? { ...msg.payload }
-      : msg.payload
+    const payload =
+      msg.payload && typeof msg.payload === 'object' ? { ...msg.payload } : msg.payload
 
     // The client UI still sends playerId for compatibility. The relay stamps
     // sender-owned events with the tracked presence id so one player cannot
@@ -120,12 +149,15 @@ export class RoomObject {
     this.sessions.delete(socket)
 
     if (session?.presence) {
-      this.broadcast({
-        type: 'presence',
-        event: 'leave',
-        key: session.key,
-        leftPresences: [session.presence],
-      }, socket)
+      this.broadcast(
+        {
+          type: 'presence',
+          event: 'leave',
+          key: session.key,
+          leftPresences: [session.presence],
+        },
+        socket,
+      )
     }
   }
 

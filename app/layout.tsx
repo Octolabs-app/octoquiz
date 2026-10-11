@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Jura } from 'next/font/google'
+import StudioFrame from '@/components/ui/StudioFrame'
 import './globals.css'
+import './studio.css'
 
-const jura = Jura({ subsets: ['latin'], variable: '--font-display', weight: ['400', '600', '700'] })
+
 
 export const metadata: Metadata = {
-  title: 'OctoQuiz',
+  title: 'OctoQuiz — by Octolabs',
+  icons: {icon: '/octoquiz.svg'},
   description: 'Multiplayer party trivia by Octolabs — Trivia, Flag Quiz, Imposter & more',
   openGraph: {
     title: 'OctoQuiz',
@@ -17,16 +19,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#0B1120',
+
+
+  themeColor: '#f3f4ed',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={jura.variable}>
+    <html lang="en" >
       <body className="min-h-screen bg-night-900 text-brand-text antialiased">
-        {children}
+        <StudioFrame>{children}</StudioFrame>
       </body>
     </html>
   )

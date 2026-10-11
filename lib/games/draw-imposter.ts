@@ -1,3 +1,4 @@
+import {caughtByVotes} from '@/lib/game-rules'
 // Decoy uses its own list of simple, single-word, easy-to-draw pairs
 // (the verbal Imposter game keeps the longer location-style words).
 import wordPairs from '@/data/decoy-words.json'
@@ -96,7 +97,7 @@ export function submitDrawVote(
   voterId: string,
   targetId: string,
 ): DrawImposterState {
-  if (state.phase !== 'voting') return state
+  if (state.phase !== 'voting' || state.votes[voterId] || voterId===targetId) return state
   return { ...state, votes: { ...state.votes, [voterId]: targetId } }
 }
 
@@ -104,12 +105,7 @@ export function resolveDrawVotes(
   state: DrawImposterState,
   players: { id: string; name: string }[],
 ): { state: DrawImposterState; points: Record<string, number> } {
-  const voteCounts: Record<string, number> = {}
-  for (const targetId of Object.values(state.votes)) {
-    voteCounts[targetId] = (voteCounts[targetId] ?? 0) + 1
-  }
-  const mostVoted = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-  const caught = mostVoted === state.imposterId
+  const caught = caughtByVotes(state.votes,state.imposterId,players.map(p=>p.id))
 
   const points: Record<string, number> = {}
   if (caught) {

@@ -1,3 +1,4 @@
+import {answerTime,timedPoints} from '@/lib/game-rules'
 import countries from '@/data/countries.json'
 import { pickFresh } from '@/lib/no-repeat'
 import type { FlagQuizState, FlagQuizQuestion } from '@/lib/types'
@@ -55,7 +56,8 @@ export function submitFlagAnswer(
   if (state.phase !== 'question') return state
   if (state.answers[playerId]) return state
 
-  const timeMs = state.startedAt ? Date.now() - state.startedAt : TIME_LIMIT * 1000
+  const timeMs = answerTime(state.startedAt,state.timeLimit)
+  if(timeMs===null||typeof answer!=='string')return state
   const correct = answer.toLowerCase().trim() ===
     state.questions[state.currentIndex].countryName.toLowerCase().trim()
 
@@ -76,8 +78,7 @@ export function calculateFlagPoints(
   for (const pid of playerIds) {
     const ans = state.answers[pid]
     if (!ans?.correct) { pts[pid] = 0; continue }
-    const ratio = Math.max(0, 1 - ans.timeMs / (TIME_LIMIT * 1000))
-    pts[pid] = Math.round(POINTS_MIN + ratio * (POINTS_MAX - POINTS_MIN))
+    pts[pid] = timedPoints(ans.timeMs,state.timeLimit,POINTS_MIN,POINTS_MAX)
   }
   return pts
 }

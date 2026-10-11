@@ -54,7 +54,7 @@ export default function FlagQuizPlayer({ state, me, sendAction }: Props) {
           <motion.p
             key={me.score}
             initial={{ scale: 1.3, color: '#a78bfa' }}
-            animate={{ scale: 1, color: 'rgba(255,255,255,0.6)' }}
+            animate={{ scale: 1, color: 'rgba(32,52,42,0.6)' }}
             transition={{ type: 'spring', bounce: 0.5 }}
             className="text-2xl font-bold mt-4"
           >
@@ -97,7 +97,7 @@ export default function FlagQuizPlayer({ state, me, sendAction }: Props) {
           <motion.p
             key={me.score}
             initial={{ scale: 1.2, color: '#a78bfa' }}
-            animate={{ scale: 1, color: 'rgba(255,255,255,0.6)' }}
+            animate={{ scale: 1, color: 'rgba(32,52,42,0.6)' }}
             className="text-sm font-bold"
           >
             {me.score.toLocaleString()} pts
@@ -126,7 +126,7 @@ export default function FlagQuizPlayer({ state, me, sendAction }: Props) {
             className="rounded-xl"
             style={{
               boxShadow: '0 12px 40px -8px rgba(0,0,0,0.6)',
-              border: '2px solid rgba(255,255,255,0.12)',
+              border: '2px solid rgba(32,52,42,0.12)',
               width: 'min(200px, 65vw)',
               height: 'auto',
             }}
@@ -177,13 +177,13 @@ export default function FlagQuizPlayer({ state, me, sendAction }: Props) {
           const isMyPick = myAnswer?.answer === opt
           const locked = !!myAnswer || state.phase !== 'question'
 
-          let bg = 'rgba(255,255,255,0.06)'
-          let border = 'rgba(255,255,255,0.1)'
+          let bg = 'rgba(32,52,42,0.06)'
+          let border = 'rgba(32,52,42,0.1)'
 
           if (revealed) {
             if (isCorrect) { bg = '#22c55e22'; border = '#22c55e' }
             else if (isMyPick) { bg = '#ef444422'; border = '#ef4444' }
-            else { bg = 'rgba(255,255,255,0.03)'; border = 'transparent' }
+            else { bg = 'rgba(32,52,42,0.03)'; border = 'transparent' }
           } else if (isMyPick) {
             bg = 'rgba(168,85,247,0.25)'
             border = '#a855f7'

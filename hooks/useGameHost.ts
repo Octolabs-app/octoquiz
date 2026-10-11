@@ -370,7 +370,8 @@ export function useGameHost(roomCode: string) {
   // ── Handle player actions ─────────────────────────────────────────────────
   const handleAction = useCallback((playerId: string, action: GameAction) => {
     const gs = gameRef.current; const r = roomRef.current
-    if (!gs || !r) return
+    if (!gs || !r || !r.players.some(p=>p.id===playerId&&p.isConnected)) return
+    if('targetId' in action && !r.players.some(p=>p.id===action.targetId))return
 
     if (action.type === 'trivia_answer' && gs.game === 'trivia') {
       const updated = submitTriviaAnswer(gs, playerId, action.answerId)
@@ -518,7 +519,7 @@ export function useGameHost(roomCode: string) {
             if (prev.players.find(pl => pl.id === player.id)) {
               const next = {
                 ...prev,
-                players: prev.players.map(pl => pl.id === player.id ? { ...pl, ...player, isReady: pl.isReady } : pl),
+                players: prev.players.map(pl => pl.id === player.id ? { ...pl, isConnected: true, name: player.name, avatar: player.avatar } : pl),
               }
               roomRef.current = next
               broadcastRoom(next)

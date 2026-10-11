@@ -116,8 +116,8 @@ export default function ImposterPlayer({ state, me, room, sendAction }: Props) {
                   onClick={() => handleVote(p.id)}
                   className="w-full flex items-center gap-4 rounded-2xl px-5 py-4 transition-all active:scale-[0.97] hover:scale-[1.01]"
                   style={{
-                    background: voted === p.id ? `${p.color}33` : 'rgba(255,255,255,0.06)',
-                    border: `2px solid ${voted === p.id ? p.color : 'rgba(255,255,255,0.1)'}`,
+                    background: voted === p.id ? `${p.color}33` : 'rgba(32,52,42,0.06)',
+                    border: `2px solid ${voted === p.id ? p.color : 'rgba(32,52,42,0.1)'}`,
                   }}
                 >
                   <span className="text-2xl">{p.avatar}</span>

@@ -72,16 +72,16 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
       <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-night-900">
         <div className="w-full max-w-xs text-center">
           <div className="text-5xl mb-3">🐙</div>
-          <h1 className="text-2xl font-black mb-1 font-display" style={{ color: '#E8E6E1' }}>
-            Room <span style={{ color: '#C6A87C' }}>{roomCode}</span>
+          <h1 className="text-2xl font-black mb-1 font-display" style={{ color: '#20342a' }}>
+            Room <span style={{ color: '#39644d' }}>{roomCode}</span>
           </h1>
-          <p className="text-sm mb-6" style={{ color: 'rgba(232,230,225,0.4)' }}>Pick avatar &amp; enter your name</p>
+          <p className="text-sm mb-6" style={{ color: 'rgba(32,52,42,0.4)' }}>Pick avatar &amp; enter your name</p>
           <div className="grid grid-cols-8 gap-2 mb-5">
             {AVATARS.map(em => (
               <button key={em} onClick={() => setAvatar(em)} className="text-2xl rounded-xl py-1.5 transition-all"
                 style={{
-                  background: avatar === em ? 'rgba(198,168,124,0.2)' : 'rgba(255,255,255,0.03)',
-                  border: `1.5px solid ${avatar === em ? '#C6A87C' : 'rgba(198,168,124,0.12)'}`,
+                  background: avatar === em ? 'rgba(57,100,77,0.2)' : 'rgba(32,52,42,0.03)',
+                  border: `1.5px solid ${avatar === em ? '#39644d' : 'rgba(57,100,77,0.12)'}`,
                   transform: avatar === em ? 'scale(1.15)' : 'scale(1)',
                 }}>{em}</button>
             ))}
@@ -89,7 +89,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
           <div className="space-y-3">
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" maxLength={16} autoFocus
               className="w-full rounded-2xl px-4 py-4 text-lg outline-none border transition-all placeholder:text-brand-muted text-center"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(198,168,124,0.12)', color: '#E8E6E1' }} />
+              style={{ background: 'rgba(32,52,42,0.03)', border: '1px solid rgba(57,100,77,0.12)', color: '#20342a' }} />
             {(error || formError) && <p className="text-red-400 text-sm">{error || formError}</p>}
             <button
               disabled={!name.trim()}
@@ -101,7 +101,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
                 setJoined(true)
               }}
               className="w-full rounded-2xl py-4 text-lg font-bold transition-all disabled:opacity-40 active:scale-95 font-display"
-              style={{ background: 'linear-gradient(135deg, #C6A87C, #a8894e)', color: '#0B1120', minHeight: '72px' }}
+              style={{ background: 'linear-gradient(135deg, #39644d, #254f38)', color: '#f3f4ed', minHeight: '72px' }}
             >
               {avatar} Join Game
             </button>
@@ -116,7 +116,7 @@ function JoinRoom({ roomCode }: { roomCode: string }) {
       <div className="min-h-screen bg-night-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl mb-3 animate-pulse">⏳</div>
-          <p style={{ color: 'rgba(232,230,225,0.5)' }}>Joining room…</p>
+          <p style={{ color: 'rgba(32,52,42,0.5)' }}>Joining room…</p>
         </div>
       </div>
     )

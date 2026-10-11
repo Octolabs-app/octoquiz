@@ -86,7 +86,7 @@ export default function TriviaPlayer({ state, me, sendAction }: Props) {
     if (myAnswer || state.phase !== 'question' || isEliminated) return
     play('select')
     haptic(50)
-    if (navigator.vibrate) navigator.vibrate(100)
+
     setSelected(idx)
     sendAction({ type: 'trivia_answer', answerId: idx })
   }
@@ -241,7 +241,7 @@ export default function TriviaPlayer({ state, me, sendAction }: Props) {
           <motion.span
             key={me.score}
             initial={{ scale: 1.2, color: '#a78bfa' }}
-            animate={{ scale: 1, color: 'rgba(255,255,255,0.6)' }}
+            animate={{ scale: 1, color: 'rgba(32,52,42,0.6)' }}
             transition={{ type: 'spring', bounce: 0.5 }}
             className="text-sm font-bold"
           >

@@ -3,7 +3,7 @@ import type { TriviaConfig, GameType, GameAction } from './types'
 /** Replaces socket.emit for host-side components */
 export interface HostEmit {
   selectGame:  (game: GameType) => void
-  startGame:   (config?: TriviaConfig) => void
+  startGame:   (config?: TriviaConfig) => void | Promise<void>
   kickPlayer:  (id: string) => void
   endGame:     () => void
   nextRound:   () => void

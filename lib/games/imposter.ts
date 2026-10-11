@@ -1,3 +1,4 @@
+import {caughtByVotes} from '@/lib/game-rules'
 import wordPairs from '@/data/imposter-words.json'
 import { pickFresh } from '@/lib/no-repeat'
 import type { ImposterState, ImposterRoundResult } from '@/lib/types'
@@ -47,7 +48,7 @@ export function submitVote(
   voterId: string,
   targetId: string,
 ): ImposterState {
-  if (state.phase !== 'voting') return state
+  if (state.phase !== 'voting' || state.votes[voterId] || voterId===targetId) return state
   return {
     ...state,
     votes: { ...state.votes, [voterId]: targetId },
@@ -58,14 +59,7 @@ export function resolveVotes(
   state: ImposterState,
   players: { id: string; name: string }[],
 ): { state: ImposterState; points: Record<string, number> } {
-  const voteCounts: Record<string, number> = {}
-  for (const targetId of Object.values(state.votes)) {
-    voteCounts[targetId] = (voteCounts[targetId] ?? 0) + 1
-  }
-
-  // Most-voted player
-  const mostVoted = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-  const caught = mostVoted === state.imposterId
+  const caught = caughtByVotes(state.votes,state.imposterId,players.map(p=>p.id))
 
   const imposterPlayer = players.find(p => p.id === state.imposterId)
 

@@ -13,15 +13,20 @@ export default function Timer({ startedAt, duration, onExpire, size = 'md' }: Ti
   const [remaining, setRemaining] = useState(duration)
   const { play } = useSound()
   const lastTickSecond = useRef(-1)
+  const expired=useRef(false)
+  const expireCallback=useRef(onExpire)
+  expireCallback.current=onExpire
 
   useEffect(() => {
+    expired.current=false
+    lastTickSecond.current=-1
     if (!startedAt) { setRemaining(duration); return }
 
     const tick = () => {
       const elapsed = (Date.now() - startedAt) / 1000
       const left = Math.max(0, duration - elapsed)
       setRemaining(left)
-      if (left <= 0) onExpire?.()
+      if (left <= 0 && !expired.current) {expired.current=true;expireCallback.current?.()}
 
       // Tick sound every second when under 5s
       const sec = Math.ceil(left)
@@ -34,9 +39,9 @@ export default function Timer({ startedAt, duration, onExpire, size = 'md' }: Ti
     tick()
     const id = setInterval(tick, 100)
     return () => clearInterval(id)
-  }, [startedAt, duration, onExpire, play])
+  }, [startedAt, duration, play])
 
-  const pct = remaining / duration
+  const pct = duration>0?Math.min(1,Math.max(0,remaining / duration)):0
   const urgent = remaining <= 5
 
   const sizeMap = {
@@ -56,12 +61,12 @@ export default function Timer({ startedAt, duration, onExpire, size = 'md' }: Ti
       >
         <circle
           cx={s.svg / 2} cy={s.svg / 2} r={s.r}
-          fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={s.sw}
+          fill="none" stroke="rgba(32,52,42,0.1)" strokeWidth={s.sw}
         />
         <circle
           cx={s.svg / 2} cy={s.svg / 2} r={s.r}
           fill="none"
-          stroke={urgent ? '#EF5350' : pct > 0.5 ? '#C6A87C' : '#eab308'}
+          stroke={urgent ? '#EF5350' : pct > 0.5 ? '#39644d' : '#eab308'}
           strokeWidth={s.sw}
           strokeLinecap="round"
           strokeDasharray={circ}

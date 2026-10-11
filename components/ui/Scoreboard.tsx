@@ -24,8 +24,8 @@ export default function Scoreboard({ players, highlightIds = [], eliminatedIds =
             style={{
               background: isHighlight  ? `${p.color}33`
                         : isEliminated ? 'rgba(255,0,0,0.06)'
-                        : 'rgba(255,255,255,0.04)',
-              border: `1.5px solid ${isHighlight ? p.color + '88' : isEliminated ? '#ef444444' : 'rgba(255,255,255,0.06)'}`,
+                        : 'rgba(32,52,42,0.04)',
+              border: `1.5px solid ${isHighlight ? p.color + '88' : isEliminated ? '#ef444444' : 'rgba(32,52,42,0.06)'}`,
               transform: isHighlight ? 'scale(1.02)' : 'scale(1)',
             }}
           >

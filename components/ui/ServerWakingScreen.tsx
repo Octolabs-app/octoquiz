@@ -42,7 +42,7 @@ export default function ServerWakingScreen({
             transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
             className="w-16 h-16 rounded-full"
             style={{
-              border: '3px solid rgba(255,255,255,0.08)',
+              border: '3px solid rgba(32,52,42,0.08)',
               borderTopColor: '#a855f7',
               borderRightColor: '#a855f7',
             }}

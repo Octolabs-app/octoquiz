@@ -1,71 +1,51 @@
 'use client'
 import type { RoomPublic, Player } from '@/lib/types'
-
-interface Props {
+export default function PlayerLobby({
+  room,
+  me,
+}: {
   room: RoomPublic | null
   me: Player | null
   emit?: unknown
-}
-
-export default function PlayerLobby({ room, me }: Props) {
-  if (!room || !me) {
-    return (
-      <div className="min-h-screen bg-night-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-5xl mb-3 animate-pulse">⏳</div>
-          <p className="text-white/50">Connecting to room...</p>
-        </div>
-      </div>
-    )
-  }
-
+}) {
+  if (!room || !me) return <p role="status">Connecting to your table…</p>
   return (
-    <div className="min-h-screen bg-night-900 flex flex-col items-center p-6 pt-12">
-      {/* My badge */}
-      <div
-        className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl mb-4 animate-bounce-in"
-        style={{ background: `${me.color}33`, border: `3px solid ${me.color}` }}
-      >
-        {me.avatar}
-      </div>
-      <h2 className="text-2xl font-black mb-1" style={{ color: me.color }}>{me.name}</h2>
-      <p className="text-white/40 text-sm mb-8">Room <span className="font-bold text-white/60">{room.code}</span></p>
-
-      {/* Waiting */}
-      <div className="glass rounded-3xl p-6 w-full text-center mb-8">
-        <div className="text-4xl mb-3 animate-pulse">👀</div>
-        <p className="text-white/60 font-medium">Waiting for the game to start...</p>
-        <p className="text-white/30 text-sm mt-1">Check the TV for updates</p>
-      </div>
-
-      {/* All players */}
-      <div className="w-full">
-        <p className="text-white/30 text-xs uppercase tracking-widest mb-3">
-          {room.players.length} player{room.players.length !== 1 ? 's' : ''} in room
-        </p>
-        <div className="space-y-2">
-          {room.players.map((p, i) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-3 rounded-2xl px-4 py-3 animate-slide-in"
-              style={{
-                animationDelay: `${i * 60}ms`,
-                background: p.id === me.id ? `${p.color}22` : 'rgba(255,255,255,0.04)',
-                border: `1.5px solid ${p.id === me.id ? p.color + '66' : 'transparent'}`,
-              }}
-            >
-              <span className="text-xl">{p.avatar}</span>
-              <span className="font-bold" style={{ color: p.color }}>{p.name}</span>
-              {p.id === me.id && (
-                <span className="ml-auto text-xs glass px-2 py-0.5 rounded-full text-white/40">You</span>
-              )}
-              {room.gameMasterId === p.id && (
-                <span className="ml-auto text-xs text-yellow-400">⭐ GM</span>
-              )}
-            </div>
-          ))}
+    <main className="quiz-results quiz-page-enter">
+      <div className="quiz-section-heading">
+        <p className="quiz-eyebrow">YOU'RE AT THE TABLE / {room.code}</p>
+        <div className="quiz-player-badge" aria-hidden="true">
+          {me.avatar}
         </div>
+        <h1>Welcome, {me.name}.</h1>
+        <p>
+          {room.status === 'game-select'
+            ? 'The host is choosing your game.'
+            : 'Everyone’s gathering. Your game starts soon.'}
+        </p>
       </div>
-    </div>
+      <section className="quiz-panel">
+        <h2>Your phone is your controller.</h2>
+        <p>
+          Keep this screen open. Questions and answer buttons will appear here when the host starts.
+        </p>
+      </section>
+      <h2 className="quiz-roster-title">
+        Your players · {room.players.filter((p) => p.isConnected).length} connected
+      </h2>
+      <ul className="quiz-player-list">
+        {room.players.map((p) => (
+          <li key={p.id}>
+            <span className="quiz-avatar">{p.avatar}</span>
+            <div>
+              <strong>
+                {p.name}
+                {p.id === me.id ? ' · You' : ''}
+              </strong>
+              <small>{p.isConnected ? 'At the table' : 'Disconnected'}</small>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </main>
   )
 }

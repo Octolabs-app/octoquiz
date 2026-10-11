@@ -9,16 +9,16 @@ const config: Config = {
     extend: {
       colors: {
         night: {
-          900: '#0B1120',
-          800: '#0f1628',
-          700: '#141d32',
-          600: '#1a253d',
-          500: '#222f4a',
+          900: '#f3f4ed',
+          800: '#edf0e7',
+          700: '#e4eadd',
+          600: '#dbe5d3',
+          500: '#cfdbc8',
         },
         brand: {
-          gold:   '#C6A87C',
-          text:   '#E8E6E1',
-          muted:  'rgba(232,230,225,0.45)',
+          gold:   '#39644d',
+          text:   '#20342a',
+          muted:  '#5d7063',
           card:   'rgba(255,255,255,0.03)',
         },
         player: {
@@ -33,7 +33,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['Jura', 'var(--font-display)', 'system-ui', 'sans-serif'],
+        display: ['Arial', 'system-ui', 'sans-serif'],
         body:    ['system-ui', 'sans-serif'],
       },
       animation: {
